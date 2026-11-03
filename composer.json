@@ -1,0 +1,22 @@
+{
+    "name": "bansaopen/tournament",
+    "description": "Manajemen Turnamen Olahraga (Badminton) - PHP Native",
+    "type": "project",
+    "require": {
+        "php": ">=8.1",
+        "ext-pdo": "*",
+        "robmorgan/phinx": "^0.16",
+        "vlucas/phpdotenv": "^5.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        },
+        "files": ["src/helpers.php"]
+    },
+    "scripts": {
+        "migrate": "phinx migrate",
+        "seed": "phinx seed:run"
+    }
+}
+

@@ -1,0 +1,56 @@
+# ==============================================================================
+# Bansa Open 2026 - .gitignore
+# ==============================================================================
+
+# 1. Environment & Sensitive Config
+.env
+.env.backup
+.env.local
+.env.*.local
+phinx.yml
+
+# 2. Package Dependencies
+/vendor/
+/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 3. Dynamic User Uploads (Foto Panitia, Logo Turnamen, Logo Sponsor)
+# File upload diabaikan agar tidak terhapus / tertimpa saat git pull di shared hosting,
+# namun folder upload dan .htaccess tetap dipertahankan.
+/public/assets/uploads/**
+!/public/assets/uploads/
+!/public/assets/uploads/**/
+!/public/assets/uploads/.htaccess
+!/public/assets/uploads/**/.gitkeep
+
+# 4. Testing & Temporary Scratch Files
+/scratch/
+*.tmp
+*.temp
+
+# 5. Application Cache & Logs
+*.log
+
+# 6. Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+
+# 7. Code Editor & IDE Configurations
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

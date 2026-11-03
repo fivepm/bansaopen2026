@@ -1,0 +1,5 @@
+# Jika document root menunjuk ke folder proyek (mis. Laragon), arahkan ke /public
+RewriteEngine On
+RewriteRule ^$ public/ [L]
+RewriteRule (.*) public/$1 [L]
+

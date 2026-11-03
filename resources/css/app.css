@@ -1,0 +1,335 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply bg-[#090d16] text-slate-100 antialiased; }
+  h1 { @apply text-2xl font-black text-white my-2 tracking-tight; }
+  a { @apply text-blue-400 hover:text-blue-300 transition-colors; }
+  label { @apply grid gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400; }
+  input, select { @apply w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-sm text-slate-100 font-normal focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all; }
+  table { @apply w-full border-collapse text-left; }
+  th { @apply border-b border-slate-800 bg-slate-950/60 p-3 text-xs font-bold uppercase tracking-wider text-slate-400; }
+  td { @apply border-b border-slate-800/70 p-3 text-sm text-slate-200; }
+}
+
+@layer components {
+  .container { @apply mx-auto max-w-6xl px-4; }
+  main.container { @apply min-h-[70vh] pt-6 pb-12; }
+  .nav { @apply bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 text-white; }
+  .nav.admin { @apply bg-slate-950 border-b border-slate-800; }
+  .nav-in { @apply flex flex-wrap items-center justify-between gap-3 py-3.5; }
+  .nav nav { @apply hidden w-full flex-col items-start gap-2 pb-2 md:flex md:w-auto md:flex-row md:items-center md:gap-1 md:pb-0; }
+  .nav nav.open { @apply flex; }
+  .nav a { @apply text-slate-300 hover:text-white md:ml-3 text-sm font-semibold transition; }
+  .nav a.brand { @apply m-0 flex items-center gap-2.5 text-lg font-black text-white; }
+  .nav-toggle { @apply rounded-xl border border-slate-700/80 px-3 py-1 text-xl text-slate-200 md:hidden hover:border-slate-600; }
+  .nav form.inline { @apply ml-0 md:ml-3; }
+
+  .hero { @apply flex flex-col-reverse items-center gap-8 rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-950/50 to-slate-950 p-8 text-white shadow-2xl md:flex-row md:justify-between md:p-14; }
+  .hero-text { @apply flex-1 space-y-4; }
+  .hero-logo { @apply max-h-48 w-auto max-w-[60%] object-contain drop-shadow-[0_15px_30px_rgba(37,99,235,0.25)] md:max-h-60; }
+  .foot { @apply py-6 text-center text-xs text-slate-500 border-t border-slate-900; }
+
+  .btn { @apply inline-flex items-center justify-center gap-2 font-semibold cursor-pointer rounded-xl border-0 bg-blue-600 px-4 py-2.5 text-sm text-white shadow-md shadow-blue-600/25 hover:bg-blue-500 transition-all active:scale-[0.98]; }
+  .btn.small { @apply px-3 py-1 text-xs rounded-lg; }
+  .btn.danger { @apply bg-rose-600 hover:bg-rose-500 shadow-rose-600/20 text-white; }
+  .btn.ghost { @apply border border-slate-700 bg-slate-800/60 text-slate-200 hover:bg-slate-700/80 hover:text-white shadow-none; }
+  form.inline { display: inline; @apply ml-2.5; }
+
+  .grid { display: grid; @apply my-4 grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4; }
+  .card { @apply rounded-2xl border border-slate-800/90 bg-slate-900/90 p-5 shadow-xl shadow-black/20 backdrop-blur-sm; }
+  .sport { @apply text-center text-slate-100 transition-all hover:-translate-y-1.5 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10; }
+  .sport.disabled { @apply opacity-75; }
+  .emoji { @apply text-5xl; }
+  .emoji.big { @apply text-8xl; }
+  .stat { @apply text-center; }
+  .stat b { @apply block text-4xl font-black text-blue-400 font-mono; }
+  .stat span { @apply text-xs uppercase tracking-wider text-slate-400 mt-1 block; }
+  .muted { @apply text-slate-400; }
+  .small-t { @apply mb-1 text-xs; }
+  
+  .badge { @apply inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-300 border border-slate-700/80; }
+  .badge.live { @apply bg-red-500/15 text-red-400 border-red-500/30; }
+  .badge.finished { @apply bg-emerald-500/15 text-emerald-400 border-emerald-500/30; }
+  .badge.upcoming { @apply bg-slate-800/90 text-slate-400 border-slate-700; }
+  .center { @apply text-center; }
+  .soon { @apply space-y-3 py-12; }
+  .empty { @apply text-center text-slate-500 py-6 text-sm italic; }
+  
+  .alert { @apply mb-5 rounded-2xl border px-4 py-3 text-sm font-medium shadow-lg backdrop-blur-sm; }
+  .alert.success { @apply border-emerald-500/30 bg-emerald-950/40 text-emerald-300; }
+  .alert.error { @apply border-rose-500/30 bg-rose-950/40 text-rose-300; }
+
+  /* Match Card Dark */
+  .match { @apply overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/90 text-sm shadow-lg shadow-black/20 text-slate-200 transition-all hover:border-slate-700; }
+  .match.live { @apply border-red-500/80 ring-2 ring-red-500/30 bg-slate-900 shadow-xl shadow-red-500/10; }
+  .mhead { @apply flex justify-between items-center bg-slate-950/80 px-3.5 py-2 text-xs text-slate-400 border-b border-slate-800/80; }
+  .mfoot { @apply flex justify-between items-center bg-slate-950/60 px-3.5 py-1.5 text-xs text-slate-500 border-t border-slate-800/80; }
+  .team { @apply flex justify-between items-center border-t border-slate-800/60 px-3.5 py-2.5 text-slate-200; }
+  .team.win { @apply bg-emerald-950/30 text-emerald-300 font-bold; }
+  .team b { @apply min-w-6 text-right font-mono text-base font-extrabold text-white; }
+
+  /* Bracket Dark */
+  .bracket { @apply flex gap-7 overflow-x-auto pt-2 pb-6; }
+  .round { @apply flex min-w-[260px] flex-1 flex-col; }
+  .round h3 { @apply mb-3 text-center font-extrabold text-blue-400 text-sm tracking-wider uppercase; }
+  .round-body { @apply flex flex-1 flex-col justify-around gap-4; }
+  .slot { @apply relative; }
+  .round:not(:last-child) .slot::after { content: ""; @apply absolute top-1/2 -right-7 w-7 border-t-2 border-slate-700; }
+
+  /* Two-Sided Bracket Connectors - Thick (2.5px - 3px) & Curved Precision */
+  
+  /* Blok Kiri: Slot Atas dalam satu pasangan (Melengkung ke kanan lalu ke bawah) */
+  .bracket-col-left .bracket-slot-top::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -1.5rem;
+    bottom: -1rem;
+    width: 1.5rem;
+    border-top: 2.5px solid #475569;
+    border-right: 2.5px solid #475569;
+    border-top-right-radius: 8px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Blok Kiri: Slot Bawah dalam satu pasangan (Melengkung ke kanan lalu ke atas bertemu slot atas) */
+  .bracket-col-left .bracket-slot-bottom::after {
+    content: "";
+    position: absolute;
+    bottom: 50%;
+    right: -1.5rem;
+    top: -1rem;
+    width: 1.5rem;
+    border-bottom: 2.5px solid #475569;
+    border-right: 2.5px solid #475569;
+    border-bottom-right-radius: 8px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Blok Kiri: Garis lurus horizontal dari titik temu siku ke babak berikutnya */
+  .bracket-col-left .bracket-slot-bottom::before {
+    content: "";
+    position: absolute;
+    top: -1rem;
+    right: -3rem;
+    width: 1.5rem;
+    border-top: 2.5px solid #475569;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Blok Kiri: Masuk ke Babak Lanjutan (entry stub dari kiri) */
+  .bracket-col-left:not(:first-child) .bracket-slot-left::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -0.5rem;
+    width: 0.5rem;
+    border-top: 2.5px solid #475569;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Blok Kiri: Single slot penghubung ke babak berikutnya jika non-pair */
+  .bracket-col-left .bracket-slot-single:not(.bracket-slot-left-semi)::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -3rem;
+    width: 3rem;
+    border-top: 2.5px solid #475569;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Blok Kiri: Semifinal Kiri menuju Grand Final (Center) */
+  .bracket-slot-left-semi::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -3rem;
+    width: 3rem;
+    border-top: 3px solid #3b82f6;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* ================= BLOK KANAN ================= */
+
+  /* Blok Kanan: Slot Atas dalam satu pasangan (Melengkung ke kiri lalu ke bawah) */
+  .bracket-col-right .bracket-slot-top::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -1.5rem;
+    bottom: -1rem;
+    width: 1.5rem;
+    border-top: 2.5px solid #475569;
+    border-left: 2.5px solid #475569;
+    border-top-left-radius: 8px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Blok Kanan: Slot Bawah dalam satu pasangan (Melengkung ke kiri lalu ke atas bertemu slot atas) */
+  .bracket-col-right .bracket-slot-bottom::after {
+    content: "";
+    position: absolute;
+    bottom: 50%;
+    left: -1.5rem;
+    top: -1rem;
+    width: 1.5rem;
+    border-bottom: 2.5px solid #475569;
+    border-left: 2.5px solid #475569;
+    border-bottom-left-radius: 8px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Blok Kanan: Garis lurus horizontal dari titik temu siku ke babak berikutnya di kiri */
+  .bracket-col-right .bracket-slot-bottom::before {
+    content: "";
+    position: absolute;
+    top: -1rem;
+    left: -3rem;
+    width: 1.5rem;
+    border-top: 2.5px solid #475569;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Blok Kanan: Masuk ke Babak Lanjutan (entry stub dari kanan) */
+  .bracket-col-right:not(:last-child) .bracket-slot-right::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -0.5rem;
+    width: 0.5rem;
+    border-top: 2.5px solid #475569;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Blok Kanan: Single slot penghubung ke babak berikutnya jika non-pair */
+  .bracket-col-right .bracket-slot-single:not(.bracket-slot-right-semi)::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -3rem;
+    width: 3rem;
+    border-top: 2.5px solid #475569;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Blok Kanan: Semifinal Kanan menuju Grand Final (Center) */
+  .bracket-slot-right-semi::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -3rem;
+    width: 3rem;
+    border-top: 3px solid #6366f1;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Pusat: Grand Final incoming lines dari Semifinal Kiri & Kanan */
+  .grand-final-box::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -2rem;
+    width: 2rem;
+    border-top: 3px solid #3b82f6;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .grand-final-box::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -2rem;
+    width: 2rem;
+    border-top: 3px solid #6366f1;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .admin-actions { @apply mt-2 flex flex-wrap items-center gap-1.5; }
+  .quick { @apply flex gap-1; }
+
+  .row-between { @apply flex items-center justify-between gap-3; }
+  .row { @apply mb-4 flex flex-wrap items-end gap-3; }
+  .form { @apply grid max-w-2xl gap-4; }
+  .two { @apply grid grid-cols-1 gap-3 sm:grid-cols-2; }
+  .login { @apply mx-auto my-12 grid max-w-sm gap-4; }
+  .login form { @apply grid gap-3.5; }
+  .actions { @apply whitespace-nowrap text-right; }
+
+  .tabs { @apply mb-6 flex gap-1.5 overflow-x-auto border-b border-slate-800 pb-px; }
+  .tabs a { @apply -mb-px whitespace-nowrap border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold text-slate-400 hover:text-slate-200; }
+  .tabs a.active { @apply border-blue-500 font-bold text-blue-400; }
+
+  .standings th, .standings td { @apply px-3.5 py-2.5 text-center text-sm; }
+  .standings th:nth-child(2), .standings td:nth-child(2) { @apply text-left; }
+  .standings thead { @apply bg-slate-950/60 text-slate-400 border-b border-slate-800; }
+}
+
+/* Ticker sponsor - CSS murni 2 baris berlawanan arah (infinite horizontal marquee) */
+.ticker {
+  position: relative;
+  overflow: hidden;
+  padding: 1.25rem 0;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(51, 65, 85, 0.6);
+  border-radius: 1.25rem;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.ticker-track-left {
+  display: flex;
+  width: max-content;
+  animation: ticker-scroll-left var(--dur, 28s) linear infinite;
+  will-change: transform;
+}
+.ticker-track-right {
+  display: flex;
+  width: max-content;
+  animation: ticker-scroll-right var(--dur, 28s) linear infinite;
+  will-change: transform;
+}
+.ticker-track-left:hover,
+.ticker-track-right:hover {
+  animation-play-state: paused;
+}
+.ticker-item {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12rem;
+  height: 4.5rem;
+  padding: 0 0.75rem;
+}
+.ticker-item img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+@keyframes ticker-scroll-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes ticker-scroll-right {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track-left,
+  .ticker-track-right { animation: none; }
+  .ticker { overflow-x: auto; }
+}

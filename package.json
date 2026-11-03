@@ -1,0 +1,12 @@
+{
+  "name": "bansaopen-tournament",
+  "private": true,
+  "scripts": {
+    "dev": "tailwindcss -i ./resources/css/app.css -o ./public/assets/app.css --watch",
+    "build": "tailwindcss -i ./resources/css/app.css -o ./public/assets/app.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
+
