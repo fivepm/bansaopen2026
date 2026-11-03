@@ -23,12 +23,64 @@
         Platform resmi pemantauan turnamen olahraga Bansa Open. Pantau bagan pertandingan, update live score langsung dari lapangan, klasemen grup, dan hasil lengkap secara real-time.
       </p>
 
-      <div class="flex flex-wrap items-center justify-center gap-3 pt-3 md:justify-start">
-        <a href="#cabor" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition hover:bg-blue-500 hover:shadow-blue-500/40">
-          <span>🏆</span>
-          <span>Pilih Cabang Olahraga</span>
-          <span>↓</span>
-        </a>
+      <!-- Tombol Aksi: Tonton Live di atas Pilih Cabang Olahraga -->
+      <?php
+        $hasLive = !empty($overview['live']) && (int)$overview['live'] > 0;
+        $liveSportSlug = null;
+        $liveSportName = '';
+        if (!empty($sports)) {
+            foreach ($sports as $slug => $s) {
+                if (!empty($s['live']) && $s['live'] > 0) {
+                    $liveSportSlug = $slug;
+                    $liveSportName = $s['name'] ?? ucfirst($slug);
+                    break;
+                }
+            }
+        }
+        $liveUrl = $liveSportSlug ? url($liveSportSlug . '/live') : url('#cabor');
+      ?>
+
+      <div class="pt-3 flex flex-col items-center md:items-start gap-3.5">
+        <!-- 1. Tombol Tonton Live -->
+        <div class="flex flex-col items-center md:items-start">
+          <?php if ($hasLive): ?>
+            <a href="<?= e($liveUrl) ?>" 
+               class="group inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:to-rose-500 px-6 py-3.5 text-sm sm:text-base font-extrabold text-white shadow-xl shadow-red-600/40 hover:shadow-red-500/60 hover:scale-[1.02] active:scale-95 transition-all duration-200">
+              <span class="relative flex h-3 w-3">
+                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-80"></span>
+                <span class="relative inline-flex h-3 w-3 rounded-full bg-white"></span>
+              </span>
+              <span>Tonton Live</span>
+              <span class="rounded-full bg-black/30 px-2.5 py-0.5 text-xs font-bold text-white tracking-wide">
+                <?= (int)$overview['live'] ?> Match
+              </span>
+              <span class="transition-transform group-hover:translate-x-1">→</span>
+            </a>
+            <span class="mt-1.5 text-xs font-semibold text-rose-400 flex items-center gap-1.5">
+              <span class="h-1.5 w-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+              Pertandingan <?= e($liveSportName) ?> sedang berlangsung
+            </span>
+          <?php else: ?>
+            <button type="button" 
+                    disabled 
+                    class="inline-flex items-center gap-2.5 rounded-xl border border-slate-700/80 bg-slate-800/80 px-6 py-3.5 text-sm sm:text-base font-bold text-slate-400 shadow-inner cursor-not-allowed select-none opacity-80">
+              <span class="h-2.5 w-2.5 rounded-full bg-slate-500"></span>
+              <span>Tonton Live</span>
+            </button>
+            <span class="mt-1.5 text-xs text-slate-400 italic">
+              (belum ada pertandingan yang berlangsung)
+            </span>
+          <?php endif; ?>
+        </div>
+
+        <!-- 2. Tombol Pilih Cabang Olahraga -->
+        <div>
+          <a href="#cabor" class="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/30 hover:shadow-blue-500/40 transition hover:scale-[1.01] active:scale-95">
+            <span>🏆</span>
+            <span>Pilih Cabang Olahraga</span>
+            <span>↓</span>
+          </a>
+        </div>
       </div>
     </div>
 

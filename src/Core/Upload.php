@@ -60,6 +60,45 @@ final class Upload
         return "uploads/$folder/$name";
     }
 
+    /**
+     * Upload gambar dari data URL base64 (mis. hasil crop JavaScript canvas).
+     * @param string $dataUrl data URL base64 (contoh: "data:image/jpeg;base64,...")
+     * @param string $folder  sub-folder, mis. "committees"
+     * @return string path relatif terhadap public/assets (mis. "uploads/committees/ab12.jpg")
+     * @throws RuntimeException jika data tidak valid atau gagal disimpan
+     */
+    public static function base64(string $dataUrl, string $folder): string
+    {
+        if (!preg_match('/^data:image\/(jpeg|png|jpg);base64,/', $dataUrl, $matches)) {
+            throw new RuntimeException('Format data gambar tidak valid.');
+        }
+
+        $ext = ($matches[1] === 'png') ? 'png' : 'jpg';
+        $decoded = base64_decode(substr($dataUrl, strpos($dataUrl, ',') + 1), true);
+        if ($decoded === false) {
+            throw new RuntimeException('Gagal memproses data gambar base64.');
+        }
+
+        if (strlen($decoded) > self::MAX_BYTES) {
+            throw new RuntimeException('Ukuran gambar melebihi batas (maks 2 MB).');
+        }
+
+        $folder = preg_replace('/[^a-z0-9_-]/i', '', $folder);
+        $dir = self::root() . '/' . $folder;
+        if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+            throw new RuntimeException('Folder upload tidak dapat dibuat.');
+        }
+
+        $name = bin2hex(random_bytes(12)) . '.' . $ext;
+        $dest = "$dir/$name";
+        if (file_put_contents($dest, $decoded) === false) {
+            throw new RuntimeException('File gambar gagal disimpan.');
+        }
+        @chmod($dest, 0644);
+
+        return "uploads/$folder/$name";
+    }
+
     /** Hapus file upload lama (hanya jika berada di dalam folder uploads). */
     public static function delete(?string $relative): void
     {

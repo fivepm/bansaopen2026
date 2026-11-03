@@ -70,7 +70,14 @@ final class CommitteeController
         }
 
         $photo = null;
-        if (isset($_FILES['photo']) && ($_FILES['photo']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+        if (!empty($_POST['cropped_photo']) && str_starts_with((string)$_POST['cropped_photo'], 'data:image/')) {
+            try {
+                $photo = Upload::base64((string)$_POST['cropped_photo'], 'committees');
+            } catch (\RuntimeException $e) {
+                flash('error', $e->getMessage());
+                redirect('admin/committees/create');
+            }
+        } elseif (isset($_FILES['photo']) && ($_FILES['photo']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
             try {
                 $photo = Upload::image($_FILES['photo'], 'committees');
             } catch (\RuntimeException $e) {
@@ -157,8 +164,20 @@ final class CommitteeController
             $photo = null;
         }
 
-        // Upload foto baru jika ada file yang dipilih
-        if (isset($_FILES['photo']) && ($_FILES['photo']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+        // Upload foto baru jika ada file yang dipilih atau hasil crop
+        if (!empty($_POST['cropped_photo']) && str_starts_with((string)$_POST['cropped_photo'], 'data:image/')) {
+            try {
+                $newPhoto = Upload::base64((string)$_POST['cropped_photo'], 'committees');
+                // Hapus file lama jika ada
+                if ($photo) {
+                    Upload::delete($photo);
+                }
+                $photo = $newPhoto;
+            } catch (\RuntimeException $e) {
+                flash('error', $e->getMessage());
+                redirect("admin/committees/$cid/edit");
+            }
+        } elseif (isset($_FILES['photo']) && ($_FILES['photo']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
             try {
                 $newPhoto = Upload::image($_FILES['photo'], 'committees');
                 // Hapus file lama jika ada

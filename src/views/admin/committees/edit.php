@@ -71,12 +71,14 @@ $isOtherSelected = ($selectedCoreId === null);
         </div>
         <div class="flex-1 space-y-2">
           <input type="file"
+                 id="committee-photo-input"
                  name="photo"
                  accept="image/jpeg,image/png,image/jpg"
-                 onchange="previewCommitteePhoto(this)"
+                 onchange="handlePhotoSelectWithCrop(this)"
                  class="block w-full text-xs text-slate-400 file:mr-3 file:rounded-xl file:border-0 file:bg-blue-600 file:px-3.5 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-blue-500 cursor-pointer">
+          <input type="hidden" name="cropped_photo" id="cropped-photo-data">
           <span class="block text-[11px] text-slate-500">
-            Biarkan kosong jika tidak ingin mengubah foto yang sudah ada. Format: JPG, JPEG, PNG (Maks 2 MB).
+            Biarkan kosong jika tidak ingin mengubah foto yang sudah ada. Format: JPG, JPEG, PNG (Maks 2 MB). Setelah memilih foto baru, jendela <strong>Crop Foto (1:1)</strong> akan otomatis terbuka.
           </span>
           <?php if (!empty($committee['photo'])): ?>
             <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-rose-400 hover:text-rose-300">
@@ -197,18 +199,10 @@ $isOtherSelected = ($selectedCoreId === null);
   </div>
 </form>
 
-<script>
-function previewCommitteePhoto(input) {
-  const box = document.getElementById('photo-preview-box');
-  if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      box.innerHTML = `<img src="${e.target.result}" alt="Preview" class="h-full w-full object-cover rounded-full">`;
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
+<!-- Modal & Skrip Pemotong Foto (Cropper) -->
+<?php include dirname(__DIR__, 2) . '/partials/crop_modal.php'; ?>
 
+<script>
 function handleRoleSelectionChange() {
   const selectedRadio = document.querySelector('input[name="core_role"]:checked');
   const divisionContainer = document.getElementById('division-checkboxes-container');

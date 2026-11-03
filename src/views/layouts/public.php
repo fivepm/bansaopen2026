@@ -38,18 +38,45 @@ $isFullWidth = !empty($fullWidth);
     </button>
 
     <nav id="mobile-menu" class="hidden w-full flex-col gap-1.5 pt-3 md:flex md:w-auto md:flex-row md:items-center md:gap-1 md:pt-0">
-      <?php $currentPath = trim((string)parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/'); ?>
-      <a href="<?= url('/') ?>" class="rounded-xl px-3.5 py-2 text-sm font-semibold transition <?= ($currentPath === '' || str_ends_with($currentPath, 'public')) ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white' ?>">
+      <?php
+        $currentPath = trim((string)parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
+        $isHome = ($currentPath === '' || str_ends_with($currentPath, 'public') || $currentPath === 'index.php');
+        $isAnySport = false;
+        foreach (\App\Models\Sports::LIST as $slug => $s) {
+            if (($sport ?? '') === $slug || str_contains($currentPath, $slug)) {
+                $isAnySport = true;
+                break;
+            }
+        }
+      ?>
+
+      <!-- 1. Beranda -->
+      <a href="<?= url('/') ?>" class="rounded-xl px-3.5 py-2 text-sm font-semibold transition <?= $isHome ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30 font-bold' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white' ?>">
         Beranda
       </a>
-      <?php foreach (\App\Models\Sports::LIST as $slug => $s): ?>
-        <?php $isActiveSport = ($sport ?? '') === $slug || str_contains($currentPath, $slug); ?>
-        <a href="<?= url($slug) ?>" class="flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition <?= $isActiveSport ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white' ?>">
-          <span><?= $s['emoji'] ?></span>
-          <span><?= e($s['label']) ?></span>
-        </a>
-      <?php endforeach; ?>
-      <a href="<?= url('kepanitiaan') ?>" class="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition <?= str_contains($currentPath, 'kepanitiaan') ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white' ?>">
+
+      <!-- 2. Dropdown Cabor -->
+      <details class="public-cabor-dropdown relative group">
+        <summary class="flex cursor-pointer list-none items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition select-none <?= $isAnySport ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30 font-bold' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white' ?>">
+          <span>🏆</span>
+          <span>Cabor</span>
+          <svg class="h-3.5 w-3.5 text-slate-400 transition-transform duration-200 group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div class="mt-1.5 w-full rounded-2xl border border-slate-800 bg-slate-900/95 p-1.5 shadow-2xl backdrop-blur-xl md:absolute md:left-0 md:top-full md:mt-2 md:w-48 z-50">
+          <?php foreach (\App\Models\Sports::LIST as $slug => $s): ?>
+            <?php $isActive = ($sport ?? '') === $slug || str_contains($currentPath, $slug); ?>
+            <a href="<?= url($slug) ?>" class="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium transition <?= $isActive ? 'bg-blue-600/20 text-blue-300 font-bold' : 'text-slate-300 hover:bg-slate-800 hover:text-white' ?>">
+              <span class="text-base"><?= $s['emoji'] ?></span>
+              <span><?= e($s['label']) ?></span>
+            </a>
+          <?php endforeach; ?>
+        </div>
+      </details>
+
+      <!-- 3. Kepanitiaan -->
+      <a href="<?= url('kepanitiaan') ?>" class="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition <?= str_contains($currentPath, 'kepanitiaan') ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30 font-bold' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white' ?>">
         <span>👥</span>
         <span>Kepanitiaan</span>
       </a>
@@ -79,5 +106,14 @@ $isFullWidth = !empty($fullWidth);
     </div>
   </div>
 </footer>
+
+<script>
+// Tutup dropdown cabor publik saat klik di luar
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.public-cabor-dropdown')) {
+    document.querySelectorAll('.public-cabor-dropdown[open]').forEach(d => d.removeAttribute('open'));
+  }
+});
+</script>
 </body>
 </html>

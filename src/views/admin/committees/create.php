@@ -42,7 +42,7 @@
       </div>
     </div>
 
-    <!-- Foto Profil Panitia (Upload) -->
+    <!-- Foto Profil Panitia (Upload & Crop) -->
     <div class="pt-3 border-t border-slate-800/80">
       <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
         Foto Profil Panitia (Opsional)
@@ -51,13 +51,17 @@
         <div id="photo-preview-box" class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-slate-700 bg-slate-950 overflow-hidden shadow-inner text-slate-600">
           <i class="bi bi-person-fill text-3xl"></i>
         </div>
-        <div class="flex-1">
+        <div class="flex-1 space-y-1.5">
           <input type="file"
+                 id="committee-photo-input"
                  name="photo"
                  accept="image/jpeg,image/png,image/jpg"
-                 onchange="previewCommitteePhoto(this)"
+                 onchange="handlePhotoSelectWithCrop(this)"
                  class="block w-full text-xs text-slate-400 file:mr-3 file:rounded-xl file:border-0 file:bg-blue-600 file:px-3.5 file:py-2 file:text-xs file:font-bold file:text-white hover:file:bg-blue-500 cursor-pointer">
-          <span class="mt-1 block text-[11px] text-slate-500">Format: JPG, JPEG, atau PNG (Maks 2 MB). Foto akan ditampilkan dalam rasio lingkaran (1:1).</span>
+          <input type="hidden" name="cropped_photo" id="cropped-photo-data">
+          <span class="block text-[11px] text-slate-500">
+            Format: JPG, JPEG, atau PNG (Maks 2 MB). Setelah memilih foto, jendela <strong>Crop Foto (1:1)</strong> akan otomatis terbuka agar foto pas dengan lingkaran profil.
+          </span>
         </div>
       </div>
     </div>
@@ -167,18 +171,10 @@
   </div>
 </form>
 
-<script>
-function previewCommitteePhoto(input) {
-  const box = document.getElementById('photo-preview-box');
-  if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      box.innerHTML = `<img src="${e.target.result}" alt="Preview" class="h-full w-full object-cover rounded-full">`;
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-}
+<!-- Modal & Skrip Pemotong Foto (Cropper) -->
+<?php include dirname(__DIR__, 2) . '/partials/crop_modal.php'; ?>
 
+<script>
 function handleRoleSelectionChange() {
   const selectedRadio = document.querySelector('input[name="core_role"]:checked');
   const divisionContainer = document.getElementById('division-checkboxes-container');
