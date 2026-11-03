@@ -73,6 +73,8 @@ $router->post('/admin/committees/{id}/delete', [CommitteeController::class, 'des
 $router->get('/admin/sponsors', [SponsorController::class, 'index'], $mwSuper);
 $router->get('/admin/sponsors/create', [SponsorController::class, 'create'], $mwSuper);
 $router->post('/admin/sponsors', [SponsorController::class, 'store'], $mwSuper);
+$router->get('/admin/sponsors/batch', [SponsorController::class, 'batch'], $mwSuper);
+$router->post('/admin/sponsors/batch', [SponsorController::class, 'storeBatch'], $mwSuper);
 $router->get('/admin/sponsors/{id}/edit', [SponsorController::class, 'edit'], $mwSuper);
 $router->post('/admin/sponsors/{id}/update', [SponsorController::class, 'update'], $mwSuper);
 $router->post('/admin/sponsors/{id}/toggle', [SponsorController::class, 'toggle'], $mwSuper);

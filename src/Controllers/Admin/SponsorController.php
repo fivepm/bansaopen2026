@@ -38,6 +38,65 @@ final class SponsorController
         redirect('admin/sponsors');
     }
 
+    public function batch(): void
+    {
+        View::render('admin/sponsors/batch', ['title' => 'Upload Banyak Sponsor Sekaligus'], 'layouts/admin');
+    }
+
+    public function storeBatch(): void
+    {
+        if (empty($_FILES['logos']['name']) || empty($_FILES['logos']['name'][0])) {
+            flash('error', 'Pilih minimal satu file logo sponsor.');
+            redirect('admin/sponsors/batch');
+        }
+
+        $files = $_FILES['logos'];
+        $count = count($files['name']);
+        $success = 0;
+        $errors = [];
+
+        for ($i = 0; $i < $count; $i++) {
+            if (($files['error'][$i] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+
+            $singleFile = [
+                'name'     => $files['name'][$i],
+                'type'     => $files['type'][$i] ?? '',
+                'tmp_name' => $files['tmp_name'][$i],
+                'error'    => $files['error'][$i],
+                'size'     => $files['size'][$i],
+            ];
+
+            // Buat nama sponsor otomatis dari nama file asli (misal: "pt-djarum.png" -> "Pt Djarum")
+            $origName = pathinfo($files['name'][$i], PATHINFO_FILENAME);
+            $cleanName = ucwords(trim(str_replace(['_', '-'], ' ', $origName)));
+            if (empty($cleanName)) {
+                $cleanName = 'Sponsor ' . ($success + 1);
+            }
+
+            try {
+                $logoPath = Upload::image($singleFile, 'sponsors');
+                Database::query(
+                    'INSERT INTO sponsors (name, logo_path, is_active) VALUES (?, ?, 1)',
+                    [$cleanName, $logoPath]
+                );
+                $success++;
+            } catch (\RuntimeException $e) {
+                $errors[] = "{$files['name'][$i]}: {$e->getMessage()}";
+            }
+        }
+
+        if ($success > 0) {
+            flash('success', "Berhasil menambahkan $success logo sponsor baru.");
+        }
+        if (!empty($errors)) {
+            flash('error', 'Beberapa file gagal: ' . implode('; ', array_slice($errors, 0, 3)));
+        }
+
+        redirect('admin/sponsors');
+    }
+
     public function edit(string $id): void
     {
         View::render('admin/sponsors/form', ['title' => 'Edit Sponsor', 'sponsor' => $this->find((int)$id)], 'layouts/admin');

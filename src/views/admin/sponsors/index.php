@@ -1,4 +1,10 @@
-<div class="row-between"><h1>Sponsor</h1><a class="btn" href="<?= url('admin/sponsors/create') ?>">+ Tambah Sponsor</a></div>
+<div class="row-between">
+  <h1>Sponsor</h1>
+  <div class="flex items-center gap-2">
+    <a class="btn ghost small" href="<?= url('admin/sponsors/batch') ?>">⚡ Upload Banyak Sekaligus</a>
+    <a class="btn small" href="<?= url('admin/sponsors/create') ?>">+ Tambah Sponsor</a>
+  </div>
+</div>
 <div class="card overflow-x-auto">
 <table>
   <thead><tr><th>Logo</th><th>Nama</th><th>Status</th><th></th></tr></thead>
