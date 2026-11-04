@@ -312,8 +312,8 @@
   align-items: center;
   justify-content: center;
   width: 12rem;
-  height: 4.5rem;
-  padding: 0 0.75rem;
+  height: 6.25rem;
+  padding: 0 0.5rem;
 }
 .ticker-item img {
   max-width: 100%;

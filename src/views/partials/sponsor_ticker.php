@@ -54,9 +54,16 @@ $dur2 = max(24, (int)(count($half2) * 3.5));
     <!-- Baris 1: Bergerak dari Kanan ke Kiri -->
     <div class="ticker-track-left flex w-max" style="--dur: <?= $dur1 ?>s">
       <?php foreach ([0, 1] as $copy): foreach ($half1 as $s): ?>
-        <div class="ticker-item flex shrink-0 items-center justify-center px-2.5" <?= $copy ? 'aria-hidden="true"' : '' ?>>
-          <div class="flex h-16 w-36 items-center justify-center rounded-xl border border-slate-700/50 bg-slate-800/60 p-2.5 shadow-sm transition-all hover:border-blue-500/50 hover:bg-slate-800">
-            <img src="<?= e(asset($s['logo_path'])) ?>" alt="<?= $copy ? '' : e($s['name']) ?>" title="<?= e($s['name']) ?>" loading="lazy" class="max-h-full max-w-full object-contain filter drop-shadow">
+        <div class="ticker-item flex shrink-0 items-center justify-center px-2" <?= $copy ? 'aria-hidden="true"' : '' ?>>
+          <div class="group flex h-[5.25rem] w-40 flex-col items-center justify-between rounded-xl border border-slate-700/50 bg-slate-800/70 p-2 shadow-sm transition-all hover:border-blue-500/60 hover:bg-slate-800 hover:shadow-md hover:shadow-blue-500/10">
+            <!-- Logo Sponsor -->
+            <div class="flex h-11 w-full items-center justify-center overflow-hidden">
+              <img src="<?= e(asset($s['logo_path'])) ?>" alt="<?= $copy ? '' : e($s['name']) ?>" title="<?= e($s['name']) ?>" loading="lazy" class="max-h-full max-w-full object-contain filter drop-shadow group-hover:scale-105 transition-transform duration-200">
+            </div>
+            <!-- Nama Sponsor di bawah Logo -->
+            <span class="w-full truncate text-center text-[11px] font-bold text-slate-300 group-hover:text-blue-300 transition-colors" title="<?= e($s['name']) ?>">
+              <?= e($s['name']) ?>
+            </span>
           </div>
         </div>
       <?php endforeach; endforeach; ?>
@@ -65,9 +72,16 @@ $dur2 = max(24, (int)(count($half2) * 3.5));
     <!-- Baris 2: Bergerak dari Kiri ke Kanan -->
     <div class="ticker-track-right flex w-max" style="--dur: <?= $dur2 ?>s">
       <?php foreach ([0, 1] as $copy): foreach ($half2 as $s): ?>
-        <div class="ticker-item flex shrink-0 items-center justify-center px-2.5" <?= $copy ? 'aria-hidden="true"' : '' ?>>
-          <div class="flex h-16 w-36 items-center justify-center rounded-xl border border-slate-700/50 bg-slate-800/60 p-2.5 shadow-sm transition-all hover:border-indigo-500/50 hover:bg-slate-800">
-            <img src="<?= e(asset($s['logo_path'])) ?>" alt="<?= $copy ? '' : e($s['name']) ?>" title="<?= e($s['name']) ?>" loading="lazy" class="max-h-full max-w-full object-contain filter drop-shadow">
+        <div class="ticker-item flex shrink-0 items-center justify-center px-2" <?= $copy ? 'aria-hidden="true"' : '' ?>>
+          <div class="group flex h-[5.25rem] w-40 flex-col items-center justify-between rounded-xl border border-slate-700/50 bg-slate-800/70 p-2 shadow-sm transition-all hover:border-indigo-500/60 hover:bg-slate-800 hover:shadow-md hover:shadow-indigo-500/10">
+            <!-- Logo Sponsor -->
+            <div class="flex h-11 w-full items-center justify-center overflow-hidden">
+              <img src="<?= e(asset($s['logo_path'])) ?>" alt="<?= $copy ? '' : e($s['name']) ?>" title="<?= e($s['name']) ?>" loading="lazy" class="max-h-full max-w-full object-contain filter drop-shadow group-hover:scale-105 transition-transform duration-200">
+            </div>
+            <!-- Nama Sponsor di bawah Logo -->
+            <span class="w-full truncate text-center text-[11px] font-bold text-slate-300 group-hover:text-indigo-300 transition-colors" title="<?= e($s['name']) ?>">
+              <?= e($s['name']) ?>
+            </span>
           </div>
         </div>
       <?php endforeach; endforeach; ?>
