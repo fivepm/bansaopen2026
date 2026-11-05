@@ -199,8 +199,8 @@ foreach ($scheduleMatches as $sm) {
                 <i class="bi bi-clock-fill text-amber-400"></i>
                 <span class="font-mono"><?= e($timeFormatted) ?></span>
                 <?php if ($hasTime): ?>
-                  <span class="text-slate-600">·</span>
-                  <span class="text-[11px] font-medium text-slate-300 hidden md:inline"><?= e($dateFormatted) ?></span>
+                  <span class="text-slate-600 hidden sm:inline">·</span>
+                  <span class="text-[11px] font-medium text-slate-300 hidden sm:inline"><?= e($dateFormatted) ?></span>
                 <?php endif; ?>
               </div>
 
@@ -234,10 +234,10 @@ foreach ($scheduleMatches as $sm) {
           </div>
 
           <!-- Baris Bawah: Tim A VS Tim B beserta Daftar Anggota di bawahnya (MURNI TANPA SKOR) -->
-          <div class="mt-4 grid grid-cols-1 md:grid-cols-11 gap-4 items-center rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
+          <div class="mt-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
             
             <!-- SISI KIRI: TIM A -->
-            <div class="md:col-span-5 flex flex-col justify-center">
+            <div class="flex-1 flex flex-col justify-center min-w-0">
               <div class="flex items-center gap-2">
                 <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600/20 text-xs font-black text-blue-400">
                   A
@@ -268,14 +268,14 @@ foreach ($scheduleMatches as $sm) {
             </div>
 
             <!-- SISI TENGAH: VS SEPARATOR -->
-            <div class="md:col-span-1 flex flex-col items-center justify-center my-1 md:my-0">
+            <div class="shrink-0 flex flex-col items-center justify-center my-1 md:my-0 px-2">
               <div class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 border border-slate-700/80 text-xs font-black text-slate-400 shadow-inner">
                 VS
               </div>
             </div>
 
             <!-- SISI KANAN: TIM B -->
-            <div class="md:col-span-5 flex flex-col justify-center md:text-right">
+            <div class="flex-1 flex flex-col justify-center min-w-0 md:text-right">
               <div class="flex items-center gap-2 md:justify-end">
                 <div class="text-sm sm:text-base font-black text-white leading-tight break-words order-2 md:order-1 <?= $hasT2 ? '' : 'italic text-slate-400' ?>">
                   <?= e($t2Name) ?>
