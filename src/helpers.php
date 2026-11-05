@@ -22,6 +22,19 @@ function url(string $path = ''): string
     return base_path() . '/' . ltrim($path, '/');
 }
 
+/** URL lengkap / absolut aplikasi web Bansa Open (diambil dari .env APP_URL). */
+function app_url(string $path = ''): string
+{
+    $envUrl = trim((string)($_ENV['APP_URL'] ?? ''));
+    if ($envUrl === '') {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'bansaopen2026.test';
+        $envUrl = $scheme . '://' . $host . base_path();
+    }
+    $envUrl = rtrim($envUrl, '/');
+    return $path !== '' ? $envUrl . '/' . ltrim($path, '/') : $envUrl;
+}
+
 function asset(string $path): string
 {
     return url('assets/' . ltrim($path, '/'));
@@ -109,8 +122,49 @@ function round_name(int $round, int $totalRounds): string
         0 => 'Final',
         1 => 'Semi Final',
         2 => 'Perempat Final',
-        default => 'Babak Penyisihan' . ($totalRounds - $round > 3 ? ' ' . $round : ''),
+        3 => 'Babak 16 Besar',
+        4 => 'Babak 32 Besar',
+        5 => 'Babak 64 Besar',
+        default => 'Babak Penyisihan' . ($totalRounds - $round > 5 ? ' ' . $round : ''),
     };
+}
+
+/**
+ * Mengembalikan nama babak pertandingan spesifik untuk jadwal & informasi urutan main.
+ */
+function match_round_name(array $m, int $totalRounds): string
+{
+    $side = $m['bracket_side'] ?? 'left';
+    if ($side === 'third_place') {
+        return 'Perebutan Juara 3';
+    }
+    if ($side === 'final') {
+        return 'Grand Final';
+    }
+    if (($m['stage'] ?? 'knockout') === 'group') {
+        return ($m['group_name'] ?? 'Fase Grup') . ' · Match ' . (int)($m['round'] ?? 1);
+    }
+    $diff = $totalRounds - (int)($m['round'] ?? 1);
+    return match ($diff) {
+        0 => 'Grand Final',
+        1 => 'Semi Final',
+        2 => 'Perempat Final',
+        3 => 'Babak 16 Besar',
+        4 => 'Babak 32 Besar',
+        5 => 'Babak 64 Besar',
+        default => 'Babak Penyisihan ' . (int)($m['round'] ?? 1),
+    };
+}
+
+/**
+ * Format nama pertandingan resmi urutan main (contoh: "Match 1-1 - Babak 16 Besar").
+ */
+function match_order_name(array $m, int $seqIndex, int $totalRounds): string
+{
+    $roundName = match_round_name($m, $totalRounds);
+    $round = (int)($m['round'] ?? 1);
+    $pos = (int)($m['position'] ?? 1);
+    return "Match {$round}-{$pos} - {$roundName}";
 }
 
 function fmt_dt(?string $dt): string
@@ -202,7 +256,7 @@ function match_team_placeholder(array $m, int $slotNum, ?int $totalRounds = null
 
         $round = (int)($m['round'] ?? 1);
         if ($round <= 1) {
-            return 'TBD';
+            return 'Menunggu penentuan dari panitia';
         }
 
         if ($totalRounds === null && !empty($m['sport_type'])) {
@@ -232,7 +286,7 @@ function match_team_placeholder(array $m, int $slotNum, ?int $totalRounds = null
         }
     }
 
-    return 'TBD';
+    return 'Menunggu penentuan dari panitia';
 }
 
 /** URL Favicon web menggunakan logo turnamen Bansa Open. */

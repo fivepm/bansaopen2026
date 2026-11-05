@@ -95,6 +95,7 @@ final class PublicController
         $teams = Database::all('SELECT * FROM teams WHERE sport_type = ? ORDER BY category, name ASC', [$sport]);
         $liveMatches = MatchModel::byStatus($sport, 'live', 'm.round, m.position');
         $finishedMatches = MatchModel::byStatus($sport, 'finished', 'm.updated_at DESC');
+        $scheduleMatches = MatchModel::chronologicalSchedule($sport);
 
         $matchIds = array_merge(array_column($liveMatches, 'id'), array_column($finishedMatches, 'id'));
         $highlights = \App\Models\MatchHighlight::forMatches($matchIds);
@@ -128,6 +129,7 @@ final class PublicController
             'teams'            => $teams,
             'liveMatches'      => $liveMatches,
             'finishedMatches'  => $finishedMatches,
+            'scheduleMatches'  => $scheduleMatches,
             'brackets'         => $brackets,
             'standings'        => $standings,
             'groupMatches'     => $groupMatches,
@@ -210,6 +212,14 @@ final class PublicController
             ]);
         }
 
+        // 4b. Render HTML Tab Jadwal & Lapangan secara kronologis
+        $scheduleMatches = MatchModel::chronologicalSchedule($sport);
+        $scheduleHtml = View::partial('partials/schedule_matches_content', [
+            'scheduleMatches' => $scheduleMatches,
+            'sport'           => $sport,
+            'categories'      => $categories,
+        ]);
+
         // 5. Identifikasi status dan hash untuk sinkronisasi DOM presisi
         $liveIds = array_map(static fn($m) => (int)$m['id'], $liveMatches);
         $finishedIds = array_map(static fn($m) => (int)$m['id'], $finishedMatches);
@@ -235,23 +245,27 @@ final class PublicController
         $liveScoreHash = md5(json_encode([$scoreState, $highlights], JSON_THROW_ON_ERROR));
         $bracketHash = md5(json_encode($bracketsHtml, JSON_THROW_ON_ERROR));
         $standingsHash = md5($standingsHtml . $playoffsHtml);
+        $scheduleHash = md5($scheduleHtml);
 
         View::json([
             'ok'              => true,
             'sport'           => $sport,
             'live_count'      => count($liveMatches),
             'finished_count'  => count($finishedMatches),
+            'schedule_count'  => count($scheduleMatches),
             'live_ids'        => $liveIds,
             'finished_ids'    => $finishedIds,
             'status_hash'     => $statusHash,
             'live_score_hash' => $liveScoreHash,
             'bracket_hash'    => $bracketHash,
             'standings_hash'  => $standingsHash,
+            'schedule_hash'   => $scheduleHash,
             'live_html'       => $liveHtml,
             'finished_html'   => $finishedHtml,
             'brackets_html'   => $bracketsHtml,
             'standings_html'  => $standingsHtml,
             'playoffs_html'   => $playoffsHtml,
+            'schedule_html'   => $scheduleHtml,
             'matches'         => $liveMatches,
             'highlights'      => $highlights,
             'timestamp'       => time(),
@@ -261,6 +275,11 @@ final class PublicController
     public function bracket(string $sport): void
     {
         redirect("$sport#bracket");
+    }
+
+    public function schedule(string $sport): void
+    {
+        redirect("$sport#jadwal");
     }
 
     public function standings(string $sport): void

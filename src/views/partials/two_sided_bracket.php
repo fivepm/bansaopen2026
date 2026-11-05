@@ -6,6 +6,7 @@
  * @var array $bracket array{totalRounds: int, left: array, right: array, final: ?array, thirdPlace: ?array}
  * @var string $catKey
  */
+$catKey = (string)($catKey ?? $ck ?? 'umum');
 $R = (int)($bracket['totalRounds'] ?? 0);
 $leftRounds = $bracket['left'] ?? [];
 $rightRounds = $bracket['right'] ?? [];
@@ -316,8 +317,8 @@ if ($isThirdFinished) {
  * Menyatukan dua pertandingan sebelumnya menuju satu pertandingan lanjutan dengan siku melengkung presisi (fork).
  */
 (function() {
-  function drawAllBracketLines() {
-    const wrappers = document.querySelectorAll('[data-bracket-wrapper]');
+  function drawAllBracketLines(targetWrapper = null) {
+    const wrappers = targetWrapper ? [targetWrapper] : document.querySelectorAll('[data-bracket-wrapper]');
     if (!wrappers.length) return;
 
     wrappers.forEach(wrapper => {

@@ -2,7 +2,7 @@
 /** Tab navigasi publik per cabor. Butuh $sport. */
 $sys = \App\Models\Sports::system($sport);
 $path = trim((string)parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
-$tabs = ['' => 'Ringkasan'] + ($sys === 'group' ? ['klasemen' => 'Klasemen & Jadwal'] : ['bracket' => 'Bagan']) + ['live' => 'Live', 'hasil' => 'Hasil'];
+$tabs = ['' => 'Ringkasan'] + ['jadwal' => 'Jadwal & Lapangan'] + ($sys === 'group' ? ['klasemen' => 'Klasemen & Jadwal'] : ['bracket' => 'Bagan']) + ['live' => 'Live', 'hasil' => 'Hasil'];
 ?>
 <div class="mb-4 flex items-center gap-3">
   <span class="text-3xl"><?= \App\Models\Sports::emoji($sport) ?></span>

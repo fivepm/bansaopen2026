@@ -135,6 +135,7 @@ $router->get('/kepanitiaan', [PublicController::class, 'committees']);
 $router->get('/{sport}', [PublicController::class, 'sport']);
 $router->get('/{sport}/live-data', [PublicController::class, 'liveData']);
 $router->get('/{sport}/bracket', [PublicController::class, 'bracket']);
+$router->get('/{sport}/jadwal', [PublicController::class, 'schedule']);
 $router->get('/{sport}/klasemen', [PublicController::class, 'standings']);
 $router->get('/{sport}/live', [PublicController::class, 'live']);
 $router->get('/{sport}/hasil', [PublicController::class, 'results']);

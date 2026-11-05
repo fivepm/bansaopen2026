@@ -105,6 +105,29 @@ final class MatchModel
         return Database::all($sql, $params);
     }
 
+    /**
+     * Mengambil daftar urutan jadwal pertandingan cabor secara kronologis (Ascending).
+     * Diurutkan dari pagi hingga malam (waktu pertandingan paling awal ke akhir).
+     * Pertandingan tanpa jadwal (TBD) diurutkan setelahnya secara berurutan babak & posisi.
+     * @return array<int, array>
+     */
+    public static function chronologicalSchedule(string $sport, ?string $category = null): array
+    {
+        $sql = self::SELECT . ' WHERE m.sport_type = ?';
+        $params = [$sport];
+        if ($category !== null) {
+            $sql .= ' AND m.category = ?';
+            $params[] = $category;
+        }
+        $sql .= ' ORDER BY 
+            CASE WHEN m.scheduled_at IS NULL THEN 1 ELSE 0 END ASC,
+            m.scheduled_at ASC,
+            m.round ASC,
+            m.position ASC';
+
+        return Database::all($sql, $params);
+    }
+
     public static function knockoutRounds(string $sport, ?string $category = null): int
     {
         $sql = "SELECT MAX(round) AS r FROM matches WHERE sport_type = ? AND stage = 'knockout'";

@@ -112,6 +112,13 @@ $hasMultipleCategories = (count($categories) > 1);
     <span id="tab-live-count" class="rounded-full bg-red-500 px-2 py-0.2 text-[11px] font-bold text-white <?= $liveCount > 0 ? '' : 'hidden' ?>"><?= $liveCount ?></span>
   </button>
 
+  <!-- Tab Baru: Jadwal & Lapangan (Chronological Order of Play) -->
+  <button type="button" id="btn-tab-jadwal" onclick="switchTab('jadwal')" class="tab-btn flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all">
+    <span>📅</span>
+    <span>Jadwal &amp; Lapangan</span>
+    <span id="tab-jadwal-count" class="rounded-full bg-slate-800 px-2 py-0.2 text-[11px] font-bold text-slate-300"><?= count($scheduleMatches ?? []) ?></span>
+  </button>
+
   <!-- Tab 2: Bracket / Klasemen (Fase Grup) -->
   <button type="button" id="btn-tab-bracket" onclick="switchTab('bracket')" class="tab-btn flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all">
     <span><?= $isGroup ? '📊' : '🌳' ?></span>
@@ -189,6 +196,15 @@ $hasMultipleCategories = (count($categories) > 1);
 
   <div id="live-content-container">
     <?php include dirname(__DIR__) . '/partials/live_matches_content.php'; ?>
+  </div>
+</section>
+
+<!-- ========================================== -->
+<!-- KONTEN TAB: JADWAL & LAPANGAN              -->
+<!-- ========================================== -->
+<section id="panel-jadwal" class="tab-panel hidden mt-6">
+  <div id="schedule-content-container">
+    <?php include dirname(__DIR__) . '/partials/schedule_matches_content.php'; ?>
   </div>
 </section>
 
@@ -380,9 +396,12 @@ $hasMultipleCategories = (count($categories) > 1);
 <!-- JAVASCRIPT SISTEM TAB & SEAMLESS POLLING   -->
 <!-- ========================================== -->
 <script>
-// 1. Switch Tab Utama (Live, Bracket, Playoff, Teams, Hasil)
+// Variabel kategori bracket aktif global
+window.currentBracketCat = '<?= \App\Models\Sports::defaultCategory($sport) ?>';
+
+// 1. Switch Tab Utama (Live, Jadwal, Bracket, Playoff, Teams, Hasil)
 function switchTab(tabId) {
-  const tabs = ['live', 'bracket', 'playoff', 'teams', 'hasil'];
+  const tabs = ['live', 'jadwal', 'bracket', 'playoff', 'teams', 'hasil'];
   if (!tabs.includes(tabId)) {
     tabId = 'live';
   }
@@ -422,6 +441,7 @@ function switchTab(tabId) {
 
 // 2. Switch Sub-Tab Kategori Bracket (Khusus Badminton: Ganda Putra vs Ganda Putri)
 function switchBracketCategory(catKey) {
+  window.currentBracketCat = catKey;
   document.querySelectorAll('.bracket-cat-panel').forEach(p => p.classList.add('hidden'));
   document.querySelectorAll('.subcat-btn').forEach(b => {
     b.classList.remove('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-600/30');
@@ -475,6 +495,7 @@ let lastStatusHash = null;
 let lastLiveScoreHash = null;
 let lastBracketHash = null;
 let lastStandingsHash = null;
+let lastScheduleHash = null;
 
 async function pollLiveScores() {
   if (isPolling) return;
@@ -487,7 +508,7 @@ async function pollLiveScores() {
     if (!data.ok) return;
 
     // 1. Update Badges & Counter
-    updateLiveBadges(data.live_count, data.finished_count);
+    updateLiveBadges(data.live_count, data.finished_count, data.schedule_count);
 
     // 2. Perpindahan Status Pertandingan (Live <-> Selesai / Belum Mulai)
     // Jika match_status berubah, re-render DOM komponen Live dan Hasil secara seamless
@@ -544,6 +565,18 @@ async function pollLiveScores() {
     }
     lastStandingsHash = data.standings_hash;
 
+    // 3c. Sinkronisasi Tab Jadwal & Lapangan secara Real-Time
+    if (data.schedule_html && lastScheduleHash !== null && lastScheduleHash !== data.schedule_hash) {
+      const schedCont = document.getElementById('schedule-content-container');
+      if (schedCont) {
+        schedCont.innerHTML = data.schedule_html;
+        if (typeof applyScheduleFilters === 'function') {
+          applyScheduleFilters();
+        }
+      }
+    }
+    lastScheduleHash = data.schedule_hash;
+
     // 4. Update Nilai Skor & Active Set dengan micro-flash jika ada pertandingan live
     if (data.matches && data.matches.length > 0) {
       data.matches.forEach(m => {
@@ -574,7 +607,7 @@ async function pollLiveScores() {
   }
 }
 
-function updateLiveBadges(liveCount, finishedCount) {
+function updateLiveBadges(liveCount, finishedCount, scheduleCount) {
   // Update badge jumlah live di tab button
   const badgeEl = document.getElementById('tab-live-count');
   if (badgeEl) {
@@ -612,6 +645,11 @@ function updateLiveBadges(liveCount, finishedCount) {
   const tabHasilCount = document.getElementById('tab-hasil-count');
   if (tabHasilCount) {
     tabHasilCount.textContent = finishedCount;
+  }
+
+  const tabJadwalCount = document.getElementById('tab-jadwal-count');
+  if (tabJadwalCount && scheduleCount !== undefined) {
+    tabJadwalCount.textContent = scheduleCount;
   }
 }
 
@@ -1061,7 +1099,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let hash = window.location.hash.replace('#', '');
   if (hash === 'klasemen') hash = 'bracket';
 
-  if (['live', 'bracket', 'playoff', 'teams', 'hasil'].includes(hash)) {
+  if (['live', 'jadwal', 'bracket', 'playoff', 'teams', 'hasil'].includes(hash)) {
     switchTab(hash);
   } else {
     <?php if ($liveCount > 0): ?>
