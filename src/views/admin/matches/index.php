@@ -127,13 +127,55 @@
     <div class="grid">
       <?php foreach ($groupMatches[(int)$g['id']] as $m): ?>
         <div class="slot" data-id="<?= (int)$m['id'] ?>">
-          <div class="muted small-t">Hari ke-<?= (int)$m['round'] ?></div>
+          <div class="muted small-t"><?= $sport === 'futsal' ? 'Match ke-' : 'Hari ke-' ?><?= (int)$m['round'] ?></div>
           <?php include dirname(__DIR__, 2) . '/partials/match_card.php'; ?>
           <?php include dirname(__DIR__, 2) . '/partials/admin_match_actions.php'; ?>
         </div>
       <?php endforeach; ?>
     </div>
   <?php endforeach; ?>
+
+  <?php if (!empty($playoffs['final']) || !empty($playoffs['thirdPlace'])): ?>
+    <div class="mt-10 border-t border-slate-800 pt-6">
+      <div class="mb-4">
+        <h2 class="text-xl font-black text-white flex items-center gap-2">
+          <span>🏆</span>
+          <span>Babak Playoff &amp; Final</span>
+        </h2>
+        <p class="text-xs text-slate-400 mt-1">
+          Juara Grup otomatis lolos ke Grand Final, dan Runner-up Grup lolos ke Perebutan Juara 3 segera setelah masing-masing grup menyelesaikan pertandingannya (tanpa harus menunggu grup lain selesai).
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <?php if (!empty($playoffs['final'])): $m = $playoffs['final']; ?>
+          <div class="slot rounded-2xl border-2 border-amber-500/40 bg-slate-900/80 p-4 shadow-xl shadow-amber-500/5" data-id="<?= (int)$m['id'] ?>">
+            <div class="flex items-center justify-between mb-2">
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-500/50 bg-amber-500/20 px-3 py-0.5 text-xs font-black text-amber-300">
+                👑 GRAND FINAL
+              </span>
+              <span class="text-[11px] text-slate-400">Penentu Juara 1 &amp; 2</span>
+            </div>
+            <?php include dirname(__DIR__, 2) . '/partials/match_card.php'; ?>
+            <?php include dirname(__DIR__, 2) . '/partials/admin_match_actions.php'; ?>
+          </div>
+        <?php endif; ?>
+
+        <?php if (!empty($playoffs['thirdPlace'])): $m = $playoffs['thirdPlace']; ?>
+          <div class="slot rounded-2xl border-2 border-blue-500/30 bg-slate-900/80 p-4 shadow-xl shadow-blue-500/5" data-id="<?= (int)$m['id'] ?>">
+            <div class="flex items-center justify-between mb-2">
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-blue-500/50 bg-blue-500/20 px-3 py-0.5 text-xs font-black text-blue-300">
+                🥉 PEREBUTAN JUARA 3
+              </span>
+              <span class="text-[11px] text-slate-400">Penentu Juara 3</span>
+            </div>
+            <?php include dirname(__DIR__, 2) . '/partials/match_card.php'; ?>
+            <?php include dirname(__DIR__, 2) . '/partials/admin_match_actions.php'; ?>
+          </div>
+        <?php endif; ?>
+      </div>
+    </div>
+  <?php endif; ?>
 <?php endif; ?>
 
 <!-- ================= MODAL 1: UBAH STATUS, SISTEM SET & JADWAL ================= -->
@@ -181,19 +223,47 @@
           </p>
         </div>
 
-        <!-- 2. Pilihan Sistem Set -->
-        <div>
-          <label class="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-300">
-            Pilihan Sistem Set
-          </label>
-          <select id="modalScoringSystemSelect" name="scoring_system" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none" onchange="toggleStatusSections()">
-            <option value="poin_lanjut">Poin Lanjut (2 Set)</option>
-            <option value="rubber_set">Rubber Set (Best of 3)</option>
-          </select>
-          <p class="mt-1 text-[11px] text-slate-400" id="scoringSystemHelp">
-            Poin Lanjut: Akumulasi total poin 2 set. Rubber Set: Mencari 2 kemenangan set.
-          </p>
-        </div>
+        <!-- 2. Pilihan Sistem Set / Format Futsal -->
+        <?php if ($sport === 'futsal'): ?>
+          <input type="hidden" id="modalScoringSystemSelect" name="scoring_system" value="rubber_set">
+          <div>
+            <label class="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-300">
+              Tipe Pertandingan
+            </label>
+            <select id="modalFutsalStageSelect" name="stage" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none">
+              <option value="group">Grup</option>
+              <option value="playoff">Playoff</option>
+            </select>
+            <p class="mt-1 text-[11px] text-slate-400">
+              Pilih <b>Grup</b> untuk babak penyisihan liga atau <b>Playoff</b> untuk perebutan juara.
+            </p>
+          </div>
+
+          <!-- Input Durasi Waktu Babak (Menit) -->
+          <div>
+            <label class="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+              <span>⏱️ Lama Pertandingan per Babak (Menit)</span>
+              <span class="text-[10px] text-emerald-400 font-normal">Otomatis untuk wasit</span>
+            </label>
+            <input type="number" min="1" max="60" name="futsal_half_duration" id="modalFutsalHalfDuration" value="5" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none font-mono">
+            <p class="mt-1 text-[11px] text-slate-400">
+              Wasit di Live Panel langsung memulai babak dengan durasi ini tanpa perlu mengatur waktu lagi.
+            </p>
+          </div>
+        <?php else: ?>
+          <div>
+            <label class="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-300">
+              Pilihan Sistem Set
+            </label>
+            <select id="modalScoringSystemSelect" name="scoring_system" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none" onchange="toggleStatusSections()">
+              <option value="poin_lanjut">Poin Lanjut (2 Set)</option>
+              <option value="rubber_set">Rubber Set (Best of 3)</option>
+            </select>
+            <p class="mt-1 text-[11px] text-slate-400" id="scoringSystemHelp">
+              Poin Lanjut: Akumulasi total poin 2 set. Rubber Set: Mencari 2 kemenangan set.
+            </p>
+          </div>
+        <?php endif; ?>
 
         <!-- 3. Jadwal Pertandingan (Hari, Tanggal, Jam, & Lapangan) -->
         <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-3.5 space-y-3">
@@ -227,46 +297,56 @@
           </div>
         </div>
 
-        <!-- Section khusus input skor jika status 'finished' -->
-        <div id="finishedScoresSection" class="rounded-xl border border-slate-800 bg-slate-950/70 p-3.5 space-y-3 hidden">
-          <div class="flex items-center justify-between text-xs font-bold text-emerald-400">
-            <span>Input / Konfirmasi Poin Set:</span>
-            <span class="text-[10px] text-slate-400 font-normal">Pemenang dihitung otomatis</span>
+        <?php if ($sport === 'futsal'): ?>
+          <!-- Futsal: Tanpa input skor manual. Skor mutlak dari highlight gol di Live Panel -->
+          <div id="futsalScoreNotice" class="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-3 text-xs text-emerald-300 flex items-center gap-2">
+            <span class="text-base">⚽</span>
+            <div>
+              <b>Skor Futsal:</b> Terhitung mutlak secara otomatis dari penambahan highlight Gol di Live Panel.
+            </div>
           </div>
+        <?php else: ?>
+          <!-- Section khusus input skor jika status 'finished' (Badminton / Tenis Meja) -->
+          <div id="finishedScoresSection" class="rounded-xl border border-slate-800 bg-slate-950/70 p-3.5 space-y-3 hidden">
+            <div class="flex items-center justify-between text-xs font-bold text-emerald-400">
+              <span>Input / Konfirmasi Poin Set:</span>
+              <span class="text-[10px] text-slate-400 font-normal">Pemenang dihitung otomatis</span>
+            </div>
 
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <span class="text-[11px] text-slate-400 block mb-1 truncate"><span id="labelSet1Title">Set 1</span> (<span id="labelSet1A">Tim 1</span>)</span>
-              <input type="number" name="set1_a" id="modalSet1A" min="0" value="0" class="w-full !py-1 text-center font-mono" oninput="syncPoinLanjutModal()">
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span class="text-[11px] text-slate-400 block mb-1 truncate"><span id="labelSet1Title">Set 1</span> (<span id="labelSet1A">Tim 1</span>)</span>
+                <input type="number" name="set1_a" id="modalSet1A" min="0" value="0" class="w-full !py-1 text-center font-mono" oninput="syncPoinLanjutModal()">
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-400 block mb-1 truncate"><span id="labelSet1TitleB">Set 1</span> (<span id="labelSet1B">Tim 2</span>)</span>
+                <input type="number" name="set1_b" id="modalSet1B" min="0" value="0" class="w-full !py-1 text-center font-mono" oninput="syncPoinLanjutModal()">
+              </div>
             </div>
-            <div>
-              <span class="text-[11px] text-slate-400 block mb-1 truncate"><span id="labelSet1TitleB">Set 1</span> (<span id="labelSet1B">Tim 2</span>)</span>
-              <input type="number" name="set1_b" id="modalSet1B" min="0" value="0" class="w-full !py-1 text-center font-mono" oninput="syncPoinLanjutModal()">
-            </div>
-          </div>
 
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <span class="text-[11px] text-slate-400 block mb-1 truncate"><span id="labelSet2Title">Set 2</span> (<span id="labelSet2A">Tim 1</span>)</span>
-              <input type="number" name="set2_a" id="modalSet2A" min="0" value="0" class="w-full !py-1 text-center font-mono">
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span class="text-[11px] text-slate-400 block mb-1 truncate"><span id="labelSet2Title">Set 2</span> (<span id="labelSet2A">Tim 1</span>)</span>
+                <input type="number" name="set2_a" id="modalSet2A" min="0" value="0" class="w-full !py-1 text-center font-mono">
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-400 block mb-1 truncate"><span id="labelSet2TitleB">Set 2</span> (<span id="labelSet2B">Tim 2</span>)</span>
+                <input type="number" name="set2_b" id="modalSet2B" min="0" value="0" class="w-full !py-1 text-center font-mono">
+              </div>
             </div>
-            <div>
-              <span class="text-[11px] text-slate-400 block mb-1 truncate"><span id="labelSet2TitleB">Set 2</span> (<span id="labelSet2B">Tim 2</span>)</span>
-              <input type="number" name="set2_b" id="modalSet2B" min="0" value="0" class="w-full !py-1 text-center font-mono">
-            </div>
-          </div>
 
-          <div id="set3Row" class="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <span class="text-[11px] text-slate-400 block mb-1 truncate">Set 3 (<span id="labelSet3A">Tim 1</span>)</span>
-              <input type="number" name="set3_a" id="modalSet3A" min="0" value="0" class="w-full !py-1 text-center font-mono">
-            </div>
-            <div>
-              <span class="text-[11px] text-slate-400 block mb-1 truncate">Set 3 (<span id="labelSet3B">Tim 2</span>)</span>
-              <input type="number" name="set3_b" id="modalSet3B" min="0" value="0" class="w-full !py-1 text-center font-mono">
+            <div id="set3Row" class="grid grid-cols-2 gap-2 text-xs">
+              <div>
+                <span class="text-[11px] text-slate-400 block mb-1 truncate">Set 3 (<span id="labelSet3A">Tim 1</span>)</span>
+                <input type="number" name="set3_a" id="modalSet3A" min="0" value="0" class="w-full !py-1 text-center font-mono">
+              </div>
+              <div>
+                <span class="text-[11px] text-slate-400 block mb-1 truncate">Set 3 (<span id="labelSet3B">Tim 2</span>)</span>
+                <input type="number" name="set3_b" id="modalSet3B" min="0" value="0" class="w-full !py-1 text-center font-mono">
+              </div>
             </div>
           </div>
-        </div>
+        <?php endif; ?>
       </div>
 
       <div class="mt-6 flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
@@ -386,12 +466,12 @@ function openStatusModal(btn) {
   
   const t1 = d.team1Name || 'Tim 1';
   const t2 = d.team2Name || 'Tim 2';
-  document.getElementById('labelSet1A').textContent = t1;
-  document.getElementById('labelSet1B').textContent = t2;
-  document.getElementById('labelSet2A').textContent = t1;
-  document.getElementById('labelSet2B').textContent = t2;
-  document.getElementById('labelSet3A').textContent = t1;
-  document.getElementById('labelSet3B').textContent = t2;
+  const elSet1A = document.getElementById('labelSet1A'); if (elSet1A) elSet1A.textContent = t1;
+  const elSet1B = document.getElementById('labelSet1B'); if (elSet1B) elSet1B.textContent = t2;
+  const elSet2A = document.getElementById('labelSet2A'); if (elSet2A) elSet2A.textContent = t1;
+  const elSet2B = document.getElementById('labelSet2B'); if (elSet2B) elSet2B.textContent = t2;
+  const elSet3A = document.getElementById('labelSet3A'); if (elSet3A) elSet3A.textContent = t1;
+  const elSet3B = document.getElementById('labelSet3B'); if (elSet3B) elSet3B.textContent = t2;
 
   // Pilihan status: jika sebelumnya live, di modal diarahkan ke upcoming atau finished
   const currentStatus = d.status || 'upcoming';
@@ -414,6 +494,16 @@ function openStatusModal(btn) {
   document.getElementById('modalCourt').value = d.court || '';
   updateSchedulePreview();
 
+  // Futsal settings: Tipe Pertandingan & Durasi Babak
+  const stageEl = document.getElementById('modalFutsalStageSelect');
+  if (stageEl) {
+    stageEl.value = (d.stage === 'knockout' || d.stage === 'playoff') ? 'playoff' : 'group';
+  }
+  const durEl = document.getElementById('modalFutsalHalfDuration');
+  if (durEl) {
+    durEl.value = d.futsalHalfDuration || 5;
+  }
+
   // Skor set jika selesai
   const isPoinLanjut = ((d.scoringSystem || 'rubber_set') === 'poin_lanjut');
   const s1a = parseInt(d.set1A || 0, 10);
@@ -421,20 +511,23 @@ function openStatusModal(btn) {
   const s2a = parseInt(d.set2A || 0, 10);
   const s2b = parseInt(d.set2B || 0, 10);
 
-  document.getElementById('modalSet1A').value = s1a;
-  document.getElementById('modalSet1B').value = s1b;
-  document.getElementById('modalSet2A').value = (isPoinLanjut && s2a === 0 && s1a > 0) ? s1a : s2a;
-  document.getElementById('modalSet2B').value = (isPoinLanjut && s2b === 0 && s1b > 0) ? s1b : s2b;
-  document.getElementById('modalSet3A').value = d.set3A || 0;
-  document.getElementById('modalSet3B').value = d.set3B || 0;
+  if (document.getElementById('modalSet1A')) {
+    document.getElementById('modalSet1A').value = s1a;
+    document.getElementById('modalSet1B').value = s1b;
+    document.getElementById('modalSet2A').value = (isPoinLanjut && s2a === 0 && s1a > 0) ? s1a : s2a;
+    document.getElementById('modalSet2B').value = (isPoinLanjut && s2b === 0 && s1b > 0) ? s1b : s2b;
+    document.getElementById('modalSet3A').value = d.set3A || 0;
+    document.getElementById('modalSet3B').value = d.set3B || 0;
+  }
 
   toggleStatusSections();
   document.getElementById('statusModal').classList.remove('hidden');
 }
 
 function syncPoinLanjutModal() {
-  const sys = document.getElementById('modalScoringSystemSelect').value;
-  if (sys !== 'poin_lanjut') return;
+  const sysEl = document.getElementById('modalScoringSystemSelect');
+  if (!sysEl || sysEl.value !== 'poin_lanjut') return;
+  if (!document.getElementById('modalSet1A')) return;
   
   const s1a = parseInt(document.getElementById('modalSet1A').value, 10) || 0;
   const s1b = parseInt(document.getElementById('modalSet1B').value, 10) || 0;
@@ -458,7 +551,9 @@ function closeStatusModal() {
 
 function toggleStatusSections() {
   const status = document.getElementById('modalStatusSelect').value;
-  const sys = document.getElementById('modalScoringSystemSelect').value;
+  const sysEl = document.getElementById('modalScoringSystemSelect');
+  const sys = sysEl ? sysEl.value : 'rubber_set';
+  const isFutsal = <?= json_encode($sport === 'futsal') ?>;
   
   const finishedSection = document.getElementById('finishedScoresSection');
   const set3Row = document.getElementById('set3Row');
@@ -470,7 +565,12 @@ function toggleStatusSections() {
   const l2 = document.getElementById('labelSet2Title');
   const l2b = document.getElementById('labelSet2TitleB');
 
-  if (isPoinLanjut) {
+  if (isFutsal) {
+    if (l1) l1.textContent = 'Babak 1';
+    if (l1b) l1b.textContent = 'Babak 1';
+    if (l2) l2.textContent = 'Babak 2';
+    if (l2b) l2b.textContent = 'Babak 2';
+  } else if (isPoinLanjut) {
     if (l1) l1.textContent = 'Set 1 (Skor Tengah)';
     if (l1b) l1b.textContent = 'Set 1 (Skor Tengah)';
     if (l2) l2.textContent = 'Set 2 (Akumulasi Akhir)';
@@ -494,7 +594,7 @@ function toggleStatusSections() {
   }
 
   if (set3Row) {
-    if (sys === 'rubber_set') {
+    if (!isFutsal && sys === 'rubber_set') {
       set3Row.classList.remove('hidden');
     } else {
       set3Row.classList.add('hidden');

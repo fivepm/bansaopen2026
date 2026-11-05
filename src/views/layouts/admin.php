@@ -27,7 +27,7 @@ try {
 </head>
 <body class="min-h-screen bg-[#090d16] text-slate-100 antialiased flex flex-col font-['Plus_Jakarta_Sans',system-ui,sans-serif] selection:bg-blue-600 selection:text-white">
 <header class="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md">
-  <div class="container mx-auto flex max-w-6xl flex-wrap items-center justify-between px-4 py-3">
+  <div class="w-full flex flex-wrap items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
     <a class="flex items-center gap-2.5 text-base sm:text-lg font-black text-white" href="<?= url($isOperator ? 'admin/live-panel' : 'admin') ?>">
       <span><?= $isOperator ? '⚡' : '⚙️' ?></span>
       <span class="bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
@@ -132,7 +132,7 @@ try {
   </div>
 </header>
 
-<main class="container mx-auto max-w-6xl flex-1 px-4 py-8">
+<main class="w-full flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
   <?php if ($flash): ?>
     <div class="mb-6 flex items-center gap-3 rounded-2xl border <?= $flash['type'] === 'success' ? 'border-emerald-500/30 bg-emerald-950/40 text-emerald-300' : 'border-rose-500/30 bg-rose-950/40 text-rose-300' ?> p-4 shadow-lg backdrop-blur-sm">
       <span class="text-xl"><?= $flash['type'] === 'success' ? '✓' : '⚠' ?></span>

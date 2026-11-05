@@ -9,7 +9,7 @@
         <summary class="cursor-pointer font-semibold">Jadwal &amp; hasil <?= e($g['name']) ?></summary>
         <div class="mt-3 grid !grid-cols-1 sm:!grid-cols-2">
           <?php foreach ($matches[$gid] ?? [] as $m): $total = 0; ?>
-            <div><div class="muted small-t">Hari ke-<?= (int)$m['round'] ?></div><?php include dirname(__DIR__) . '/partials/match_card.php'; ?></div>
+            <div><div class="muted small-t"><?= ($sport ?? '') === 'futsal' ? 'Match ke-' : 'Hari ke-' ?><?= (int)$m['round'] ?></div><?php include dirname(__DIR__) . '/partials/match_card.php'; ?></div>
           <?php endforeach; ?>
           <?php if (empty($matches[$gid])): ?><p class="muted">Jadwal belum dibuat.</p><?php endif; ?>
         </div>

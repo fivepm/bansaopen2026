@@ -51,6 +51,8 @@ $hasTeams = (!empty($m['team1_id']) && !empty($m['team2_id']));
             data-set2-b="<?= (int)($m['set2_b'] ?? 0) ?>"
             data-set3-a="<?= (int)($m['set3_a'] ?? 0) ?>"
             data-set3-b="<?= (int)($m['set3_b'] ?? 0) ?>"
+            data-stage="<?= e($m['stage'] ?? 'group') ?>"
+            data-futsal-half-duration="<?= (int)($m['futsal_half_duration'] ?? 5) ?>"
     >
       ⚙️ Ubah Status
     </button>

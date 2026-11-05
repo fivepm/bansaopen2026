@@ -229,11 +229,15 @@
               <?php if (!empty($s['live'])): ?>
                 <span class="rounded-lg bg-red-950/80 border border-red-500/40 px-2.5 py-1 font-semibold text-red-400 animate-pulse">🔴 <?= (int)$s['live'] ?> Live</span>
               <?php endif; ?>
-              <span class="rounded-lg bg-slate-800/80 px-2.5 py-1 font-medium text-slate-300"><?= (int)$s['finished'] ?> Selesai</span>
+              <?php if (!empty($s['matches'])): ?>
+                <span class="rounded-lg bg-slate-800/80 px-2.5 py-1 font-medium text-slate-300"><?= (int)$s['finished'] ?> Selesai</span>
+              <?php else: ?>
+                <span class="rounded-lg bg-blue-950/60 border border-blue-500/30 px-2.5 py-1 font-medium text-blue-300">Tim Terdaftar</span>
+              <?php endif; ?>
             </div>
           <?php else: ?>
             <p class="mt-3 text-xs italic text-slate-500">
-              Data tim atau bagan pertandingan cabang ini belum diatur oleh panitia.
+              Data tim dan bagan pertandingan cabang ini belum diatur oleh panitia.
             </p>
           <?php endif; ?>
         </div>

@@ -32,10 +32,12 @@ final class LivePanelController
         $sql .= ' ORDER BY m.sport_type ASC, m.round ASC, m.position ASC';
 
         $liveMatches = Database::all($sql, $params);
+        $highlights = \App\Models\MatchHighlight::forMatches(array_column($liveMatches, 'id'));
 
         View::render('admin/live_panel', [
             'title'        => 'Live Panel / Operator Skor',
             'liveMatches'  => $liveMatches,
+            'highlights'   => $highlights,
             'sportFilter'  => $sportFilter,
             'sports'       => Sports::LIST,
         ], 'layouts/admin');
@@ -60,13 +62,58 @@ final class LivePanelController
 
         // Jika ada set yang sedang berjalan dan belum ditekan tombol "Selesai Set", tidak boleh memilih set lain
         if ($curr > 0 && !$isFinished && $set !== $curr) {
+            $term = (($m['sport_type'] ?? '') === 'futsal') ? 'Babak' : 'Set';
             View::json([
                 'ok'    => false,
-                'error' => "Set $curr masih berlangsung! Selesaikan Set $curr terlebih dahulu dengan menekan tombol 'Selesai Set $curr' sebelum memilih set lain."
+                'error' => "$term $curr masih berlangsung! Selesaikan $term $curr terlebih dahulu dengan menekan tombol 'Selesai $term $curr' sebelum memilih babak/set lain."
             ], 422);
         }
 
-        if ($system === 'poin_lanjut') {
+        $isFutsal = (($m['sport_type'] ?? '') === 'futsal');
+        if ($isFutsal) {
+            if (!in_array($set, [1, 2], true)) {
+                View::json(['ok' => false, 'error' => 'Format Futsal hanya memiliki Babak 1 dan Babak 2.'], 422);
+            }
+            $halfDuration = (int)($m['futsal_half_duration'] ?? 5);
+            $elapsed = (int)($m['futsal_elapsed_seconds'] ?? 0);
+            if ($set === 2 && $curr < 2) {
+                $elapsed = $halfDuration * 60;
+            } elseif ($set === 1 && $curr === 0) {
+                $elapsed = 0;
+            }
+            Database::query(
+                "UPDATE matches SET
+                    current_set = ?,
+                    is_set_finished = 0,
+                    futsal_elapsed_seconds = ?,
+                    futsal_timer_status = 'running',
+                    futsal_timer_updated_at = NOW()
+                 WHERE id = ?",
+                [$set, $elapsed, $m['id']]
+            );
+            $m['current_set'] = $set;
+            $m['is_set_finished'] = 0;
+            $m['futsal_elapsed_seconds'] = $elapsed;
+            $m['futsal_timer_status'] = 'running';
+
+            $set1A = (int)$m['set1_a'];
+            $set1B = (int)$m['set1_b'];
+            $set2A = (int)$m['set2_a'];
+            $set2B = (int)$m['set2_b'];
+            $set3A = 0;
+            $set3B = 0;
+            $score1 = $set1A + $set2A;
+            $score2 = $set1B + $set2B;
+
+            if ($score1 > $score2) {
+                $winnerPreview = 'Tim 1 Unggul';
+            } elseif ($score2 > $score1) {
+                $winnerPreview = 'Tim 2 Unggul';
+            } else {
+                $winnerPreview = 'Skor Imbang';
+            }
+            $canFinish = ($set === 2);
+        } elseif ($system === 'poin_lanjut') {
             if (!in_array($set, [1, 2], true)) {
                 View::json(['ok' => false, 'error' => 'Sistem Poin Lanjut hanya memiliki maksimal 2 set.'], 422);
             }
@@ -153,20 +200,23 @@ final class LivePanelController
         }
 
         View::json([
-            'ok'             => true,
-            'current_set'    => $set,
-            'scoring_system' => $system,
-            'set1_a'         => $set1A,
-            'set1_b'         => $set1B,
-            'set2_a'         => $set2A,
-            'set2_b'         => $set2B,
-            'set3_a'         => $set3A,
-            'set3_b'         => $set3B,
-            'score1'         => $score1,
-            'score2'         => $score2,
-            'winner_preview' => $winnerPreview,
-            'can_finish'     => $canFinish,
-            'message'        => "Set $set telah diaktifkan.",
+            'ok'                     => true,
+            'current_set'            => $set,
+            'scoring_system'         => $system,
+            'set1_a'                 => $set1A,
+            'set1_b'                 => $set1B,
+            'set2_a'                 => $set2A,
+            'set2_b'                 => $set2B,
+            'set3_a'                 => $set3A,
+            'set3_b'                 => $set3B,
+            'score1'                 => $score1,
+            'score2'                 => $score2,
+            'winner_preview'         => $winnerPreview,
+            'can_finish'             => $canFinish,
+            'futsal_half_duration'   => (int)($m['futsal_half_duration'] ?? 5),
+            'futsal_elapsed_seconds' => (int)($m['futsal_elapsed_seconds'] ?? 0),
+            'futsal_timer_status'    => $m['futsal_timer_status'] ?? 'stopped',
+            'message'                => "Set $set telah diaktifkan.",
         ]);
     }
 
@@ -186,9 +236,55 @@ final class LivePanelController
         }
 
         $system = $m['scoring_system'] ?? 'rubber_set';
+        $isFutsal = (($m['sport_type'] ?? '') === 'futsal');
 
         // Tandai set aktif telah selesai
-        Database::query("UPDATE matches SET is_set_finished = 1 WHERE id = ?", [$m['id']]);
+        if ($isFutsal) {
+            $halfDur = (int)($m['futsal_half_duration'] ?? 5);
+            $half1End = $halfDur * 60;
+            $maxTime = $halfDur * 120;
+            if ($currentSet === 1) {
+                Database::query(
+                    "UPDATE matches SET
+                        is_set_finished = 1,
+                        futsal_elapsed_seconds = ?,
+                        futsal_timer_status = 'paused',
+                        futsal_timer_updated_at = NOW()
+                     WHERE id = ?",
+                    [$half1End, $m['id']]
+                );
+                $m['futsal_elapsed_seconds'] = $half1End;
+
+                // Tambahkan penanda Half Time ke highlight jika belum ada
+                $hasHt = Database::one("SELECT id FROM match_highlights WHERE match_id = ? AND event_type = 'half_time'", [$m['id']]);
+                if (!$hasHt) {
+                    \App\Models\MatchHighlight::add((int)$m['id'], null, 'Half Time (Turun Minum)', 'half_time', (string)$halfDur, null, null, 1);
+                }
+            } elseif ($currentSet === 2) {
+                // Ketika babak 2 / pertandingan selesai, waktu otomatis menjadi batas waktu maksimal yang ditentukan admin
+                Database::query(
+                    "UPDATE matches SET
+                        is_set_finished = 1,
+                        futsal_elapsed_seconds = ?,
+                        futsal_timer_status = 'paused',
+                        futsal_timer_updated_at = NOW()
+                     WHERE id = ?",
+                    [$maxTime, $m['id']]
+                );
+                $m['futsal_elapsed_seconds'] = $maxTime;
+
+                // Tambahkan penanda Full Time ke highlight jika belum ada
+                $hasFt = Database::one("SELECT id FROM match_highlights WHERE match_id = ? AND event_type = 'full_time'", [$m['id']]);
+                if (!$hasFt) {
+                    \App\Models\MatchHighlight::add((int)$m['id'], null, 'Full Time (Pertandingan Berakhir)', 'full_time', (string)($halfDur * 2), null, null, 2);
+                }
+            } else {
+                Database::query("UPDATE matches SET is_set_finished = 1, futsal_timer_status = 'paused', futsal_timer_updated_at = NOW() WHERE id = ?", [$m['id']]);
+            }
+            $m['futsal_timer_status'] = 'paused';
+        } else {
+            Database::query("UPDATE matches SET is_set_finished = 1 WHERE id = ?", [$m['id']]);
+        }
         $m['is_set_finished'] = 1;
 
         // Jika Poin Lanjut dan Set 1 selesai, sinkronkan skor awal Set 2
@@ -220,7 +316,20 @@ final class LivePanelController
         $nextSet = null;
         $canFinishMatch = false;
 
-        if ($system === 'poin_lanjut') {
+        $isFutsal = (($m['sport_type'] ?? '') === 'futsal');
+        if ($isFutsal) {
+            $score1 = $set1A + $set2A;
+            $score2 = $set1B + $set2B;
+            if ($currentSet === 1) {
+                $nextSet = 2;
+                $winnerPreview = 'Babak 1 Selesai · Siap Lanjut Babak 2';
+                $canFinishMatch = false;
+            } else {
+                $nextSet = null;
+                $canFinishMatch = true;
+                $winnerPreview = ($score1 > $score2) ? 'Tim 1 Unggul (Selesai)' : (($score2 > $score1) ? 'Tim 2 Unggul (Selesai)' : 'Skor Imbang (Selesai)');
+            }
+        } elseif ($system === 'poin_lanjut') {
             $score1 = ($set2A > 0) ? $set2A : $set1A;
             $score2 = ($set2B > 0) ? $set2B : $set1B;
             if ($currentSet === 1) {
@@ -255,22 +364,25 @@ final class LivePanelController
         }
 
         View::json([
-            'ok'               => true,
-            'current_set'      => $currentSet,
-            'is_set_finished'  => 1,
-            'next_set'         => $nextSet,
-            'scoring_system'   => $system,
-            'set1_a'           => $set1A,
-            'set1_b'           => $set1B,
-            'set2_a'           => $set2A,
-            'set2_b'           => $set2B,
-            'set3_a'           => $set3A,
-            'set3_b'           => $set3B,
-            'score1'           => $score1,
-            'score2'           => $score2,
-            'winner_preview'   => $winnerPreview,
-            'can_finish_match' => $canFinishMatch,
-            'message'          => "Set $currentSet telah selesai! Anda sekarang dapat memilih set berikutnya.",
+            'ok'                  => true,
+            'current_set'         => $currentSet,
+            'is_set_finished'     => 1,
+            'next_set'            => $nextSet,
+            'scoring_system'      => $system,
+            'set1_a'              => $set1A,
+            'set1_b'              => $set1B,
+            'set2_a'              => $set2A,
+            'set2_b'              => $set2B,
+            'set3_a'              => $set3A,
+            'set3_b'              => $set3B,
+            'score1'              => $score1,
+            'score2'              => $score2,
+            'winner_preview'      => $winnerPreview,
+            'can_finish_match'    => $canFinishMatch,
+            'futsal_elapsed_seconds' => (int)($m['futsal_elapsed_seconds'] ?? 0),
+            'futsal_timer_status' => $m['futsal_timer_status'] ?? 'paused',
+            'highlights'          => ($isFutsal ? \App\Models\MatchHighlight::forMatch((int)$m['id']) : []),
+            'message'             => "Set $currentSet telah selesai! Anda sekarang dapat memilih set berikutnya.",
         ]);
     }
 
@@ -291,10 +403,20 @@ final class LivePanelController
 
         Database::query("UPDATE matches SET is_set_finished = 0 WHERE id = ?", [$m['id']]);
 
+        $isFutsal = (($m['sport_type'] ?? '') === 'futsal');
+        if ($isFutsal) {
+            if ($currentSet === 1) {
+                Database::query("DELETE FROM match_highlights WHERE match_id = ? AND event_type = 'half_time'", [$m['id']]);
+            } elseif ($currentSet === 2) {
+                Database::query("DELETE FROM match_highlights WHERE match_id = ? AND event_type = 'full_time'", [$m['id']]);
+            }
+        }
+
         View::json([
             'ok'              => true,
             'current_set'     => $currentSet,
             'is_set_finished' => 0,
+            'highlights'      => ($isFutsal ? \App\Models\MatchHighlight::forMatch((int)$m['id']) : []),
             'message'         => "Set $currentSet dibuka kembali untuk koreksi skor.",
         ]);
     }
@@ -341,7 +463,33 @@ final class LivePanelController
         $system = $m['scoring_system'] ?? 'rubber_set';
         $column = "set{$set}_{$team}";
 
-        if ($system === 'poin_lanjut') {
+        $isFutsal = (($m['sport_type'] ?? '') === 'futsal');
+        if ($isFutsal) {
+            $currentVal = (int)($m[$column] ?? 0);
+            $newVal = max(0, $currentVal + $delta);
+            Database::query("UPDATE matches SET $column = ? WHERE id = ?", [$newVal, $m['id']]);
+            $m[$column] = $newVal;
+
+            $set1A = (int)$m['set1_a'];
+            $set1B = (int)$m['set1_b'];
+            $set2A = (int)$m['set2_a'];
+            $set2B = (int)$m['set2_b'];
+            $set3A = 0;
+            $set3B = 0;
+
+            $score1 = $set1A + $set2A;
+            $score2 = $set1B + $set2B;
+            Database::query("UPDATE matches SET score1 = ?, score2 = ? WHERE id = ?", [$score1, $score2, $m['id']]);
+
+            if ($score1 > $score2) {
+                $winnerPreview = 'Tim 1 Unggul';
+            } elseif ($score2 > $score1) {
+                $winnerPreview = 'Tim 2 Unggul';
+            } else {
+                $winnerPreview = 'Skor Imbang';
+            }
+            $canFinish = ($currentSet === 2);
+        } elseif ($system === 'poin_lanjut') {
             $set1Val = (int)($m["set1_{$team}"] ?? 0);
             $set2Val = (int)($m["set2_{$team}"] ?? 0);
 
@@ -486,6 +634,17 @@ final class LivePanelController
             'court'        => $m['court'],
         ]);
 
+        if (($m['sport_type'] ?? '') === 'futsal') {
+            $halfDur = (int)($m['futsal_half_duration'] ?? 5);
+            $maxTime = $halfDur * 120;
+            Database::query("UPDATE matches SET futsal_elapsed_seconds = ?, futsal_timer_status = 'paused', futsal_timer_updated_at = NOW() WHERE id = ?", [$maxTime, $m['id']]);
+
+            $hasFt = Database::one("SELECT id FROM match_highlights WHERE match_id = ? AND event_type = 'full_time'", [$m['id']]);
+            if (!$hasFt) {
+                \App\Models\MatchHighlight::add((int)$m['id'], null, 'Full Time (Pertandingan Berakhir)', 'full_time', (string)($halfDur * 2), null, null, 2);
+            }
+        }
+
         Database::query("UPDATE matches SET current_set = 0, is_set_finished = 0 WHERE id = ?", [$m['id']]);
 
         flash('success', "Pertandingan telah diselesaikan! Skor akhir: {$outcome['score1']} - {$outcome['score2']}. Pemenang melaju ke babak selanjutnya.");
@@ -503,6 +662,138 @@ final class LivePanelController
             flash('success', 'Status pertandingan dikembalikan ke "Belum Mulai".');
         }
         redirect('admin/live-panel');
+    }
+
+    /**
+     * Memperbarui durasi, detik berjalan, dan status timer futsal (AJAX).
+     */
+    public function updateTimer(string $id): void
+    {
+        $m = Database::one('SELECT * FROM matches WHERE id = ?', [(int)$id]);
+        if (!$m || $m['status'] !== 'live') {
+            View::json(['ok' => false, 'error' => 'Pertandingan tidak aktif / bukan berstatus Live.'], 422);
+        }
+
+        $halfDuration = max(1, min(120, (int)($_POST['half_duration'] ?? $m['futsal_half_duration'] ?? 20)));
+        $elapsedSeconds = max(0, min(14400, (int)($_POST['elapsed_seconds'] ?? $m['futsal_elapsed_seconds'] ?? 0)));
+        $timerStatus = in_array($_POST['timer_status'] ?? '', ['running', 'paused', 'stopped'], true)
+            ? $_POST['timer_status']
+            : 'stopped';
+
+        Database::query(
+            "UPDATE matches SET
+                futsal_half_duration = ?,
+                futsal_elapsed_seconds = ?,
+                futsal_timer_status = ?,
+                futsal_timer_updated_at = NOW()
+             WHERE id = ?",
+            [$halfDuration, $elapsedSeconds, $timerStatus, $m['id']]
+        );
+
+        View::json([
+            'ok'              => true,
+            'half_duration'   => $halfDuration,
+            'elapsed_seconds' => $elapsedSeconds,
+            'timer_status'    => $timerStatus,
+        ]);
+    }
+
+    /**
+     * Menambahkan highlight pertandingan (Gol, Kartu Kuning, Kartu Merah, Pertukaran Pemain) via AJAX.
+     */
+    public function addHighlight(string $id): void
+    {
+        $m = Database::one('SELECT * FROM matches WHERE id = ?', [(int)$id]);
+        if (!$m || $m['status'] !== 'live') {
+            View::json(['ok' => false, 'error' => 'Pertandingan tidak aktif / bukan berstatus Live.'], 422);
+        }
+
+        $teamId = (int)($_POST['team_id'] ?? 0);
+        $eventType = trim((string)($_POST['event_type'] ?? 'goal'));
+        $playerName = trim((string)($_POST['player_name'] ?? ''));
+        $playerIn = isset($_POST['player_in']) ? trim((string)$_POST['player_in']) : null;
+        $playerOut = isset($_POST['player_out']) ? trim((string)$_POST['player_out']) : null;
+        $minute = trim((string)($_POST['minute'] ?? '1'));
+        if ($minute === '' || $minute === '0') {
+            $minute = '1';
+        }
+
+        $currentSet = (int)($m['current_set'] ?? 1);
+        $period = isset($_POST['period']) && in_array((int)$_POST['period'], [1, 2], true)
+            ? (int)$_POST['period']
+            : (in_array($currentSet, [1, 2], true) ? $currentSet : 1);
+
+        $isWhistle = in_array($eventType, ['half_time', 'full_time'], true);
+        if (!$isWhistle && $teamId !== (int)$m['team1_id'] && $teamId !== (int)$m['team2_id']) {
+            View::json(['ok' => false, 'error' => 'Tim tidak valid untuk pertandingan ini.'], 422);
+        }
+        $targetTeamId = $isWhistle ? null : $teamId;
+
+        $hId = \App\Models\MatchHighlight::add((int)$m['id'], $targetTeamId, $playerName, $eventType, $minute, $playerIn, $playerOut, $period);
+
+        if (($m['sport_type'] ?? '') === 'futsal') {
+            \App\Models\MatchHighlight::recalculateFutsalScore((int)$m['id']);
+        }
+
+        $highlights = \App\Models\MatchHighlight::forMatch((int)$m['id']);
+        $refreshed = Database::one('SELECT * FROM matches WHERE id = ?', [(int)$m['id']]);
+
+        View::json([
+            'ok'         => true,
+            'highlight'  => [
+                'id'          => $hId,
+                'team_id'     => $teamId,
+                'event_type'  => $eventType,
+                'player_name' => $playerName,
+                'player_in'   => $playerIn,
+                'player_out'  => $playerOut,
+                'minute'      => $minute,
+                'period'      => $period,
+            ],
+            'highlights' => $highlights,
+            'score1'     => (int)($refreshed['score1'] ?? 0),
+            'score2'     => (int)($refreshed['score2'] ?? 0),
+            'set1_a'     => (int)($refreshed['set1_a'] ?? 0),
+            'set1_b'     => (int)($refreshed['set1_b'] ?? 0),
+            'set2_a'     => (int)($refreshed['set2_a'] ?? 0),
+            'set2_b'     => (int)($refreshed['set2_b'] ?? 0),
+        ]);
+    }
+
+    /**
+     * Menghapus catatan highlight (Cancel / Undo) via AJAX.
+     * Jika highlight yang dihapus adalah Gol futsal, skor tim otomatis berkurang.
+     */
+    public function deleteHighlight(string $id, string $highlightId): void
+    {
+        $m = Database::one('SELECT * FROM matches WHERE id = ?', [(int)$id]);
+        if (!$m) {
+            View::json(['ok' => false, 'error' => 'Pertandingan tidak ditemukan.'], 404);
+        }
+
+        $hl = Database::one('SELECT * FROM match_highlights WHERE id = ? AND match_id = ?', [(int)$highlightId, $m['id']]);
+        if ($hl) {
+            \App\Models\MatchHighlight::delete((int)$highlightId);
+        }
+
+        if (($m['sport_type'] ?? '') === 'futsal') {
+            \App\Models\MatchHighlight::recalculateFutsalScore((int)$m['id']);
+        }
+
+        $highlights = \App\Models\MatchHighlight::forMatch((int)$m['id']);
+        $refreshed = Database::one('SELECT * FROM matches WHERE id = ?', [(int)$m['id']]);
+
+        View::json([
+            'ok'         => true,
+            'deleted_id' => (int)$highlightId,
+            'highlights' => $highlights,
+            'score1'     => (int)($refreshed['score1'] ?? 0),
+            'score2'     => (int)($refreshed['score2'] ?? 0),
+            'set1_a'     => (int)($refreshed['set1_a'] ?? 0),
+            'set1_b'     => (int)($refreshed['set1_b'] ?? 0),
+            'set2_a'     => (int)($refreshed['set2_a'] ?? 0),
+            'set2_b'     => (int)($refreshed['set2_b'] ?? 0),
+        ]);
     }
 }
 

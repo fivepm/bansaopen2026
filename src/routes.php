@@ -5,7 +5,9 @@ use App\Controllers\Admin\AuthController;
 use App\Controllers\Admin\CommitteeController;
 use App\Controllers\Admin\ContactController;
 use App\Controllers\Admin\DashboardController;
+use App\Controllers\Admin\DrawController;
 use App\Controllers\Admin\GroupController;
+use App\Controllers\Admin\GroupDrawController;
 use App\Controllers\Admin\LivePanelController;
 use App\Controllers\Admin\MatchController as AdminMatch;
 use App\Controllers\Admin\ScheduleController;
@@ -36,6 +38,9 @@ $router->post('/admin/live-panel/{id}/start-set', [LivePanelController::class, '
 $router->post('/admin/live-panel/{id}/finish-set', [LivePanelController::class, 'finishSet'], $mwAuth);
 $router->post('/admin/live-panel/{id}/reopen-set', [LivePanelController::class, 'reopenSet'], $mwAuth);
 $router->post('/admin/live-panel/{id}/point', [LivePanelController::class, 'point'], $mwAuth);
+$router->post('/admin/live-panel/{id}/timer', [LivePanelController::class, 'updateTimer'], $mwAuth);
+$router->post('/admin/live-panel/{id}/highlight', [LivePanelController::class, 'addHighlight'], $mwAuth);
+$router->post('/admin/live-panel/{id}/highlight/{highlightId}/delete', [LivePanelController::class, 'deleteHighlight'], $mwAuth);
 $router->post('/admin/live-panel/{id}/finish', [LivePanelController::class, 'finish'], $mwAuth);
 $router->post('/admin/live-panel/{id}/reset-status', [LivePanelController::class, 'resetStatus'], $mwAuth);
 
@@ -110,8 +115,14 @@ $router->get('/admin/{sport}/matches/{id}/edit', [AdminMatch::class, 'edit'], $m
 $router->post('/admin/{sport}/matches/{id}/update', [AdminMatch::class, 'update'], $mwSuper);
 $router->post('/admin/{sport}/matches/{id}/set-live', [AdminMatch::class, 'setLive'], $mwSuper);
 
+// Undian Tim (Spin) - Babak Penyisihan
+$router->get('/admin/{sport}/draw', [DrawController::class, 'index'], $mwSuper);
+$router->post('/admin/{sport}/draw/{id}/assign', [DrawController::class, 'assign'], $mwSuper);
+
 // Grup (Liga)
 $router->get('/admin/{sport}/groups', [GroupController::class, 'index'], $mwSuper);
+$router->get('/admin/{sport}/group-draw', [GroupDrawController::class, 'index'], $mwSuper);
+$router->post('/admin/{sport}/group-draw/assign', [GroupDrawController::class, 'assign'], $mwSuper);
 $router->post('/admin/{sport}/groups/create', [GroupController::class, 'create'], $mwSuper);
 $router->post('/admin/{sport}/groups/assign', [GroupController::class, 'assign'], $mwSuper);
 $router->post('/admin/{sport}/groups/auto', [GroupController::class, 'auto'], $mwSuper);

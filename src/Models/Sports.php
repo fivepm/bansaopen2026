@@ -79,15 +79,17 @@ final class Sports
     }
 
     /**
-     * Cabor dianggap aktif/dimulai jika SUDAH memiliki data tim yang diinput DAN bagan/pertandingan yang diatur.
-     * Jika salah satu belum ada, cabor berstatus "Belum Dimulai".
+     * Cabor dianggap aktif/dapat dilihat jika SUDAH memiliki data tim yang diinput ATAU bagan/pertandingan/grup yang dibuat panitia.
+     * Jika salah satu sudah ada (baik tim maupun bracket / grup), maka cabor tersebut sudah bisa dilihat.
+     * Jika keduanya belum ada (belum ada tim DAN belum ada bracket/grup), cabor berstatus belum aktif / disabled ("Belum Dimulai").
      */
     public static function isActive(string $sport): bool
     {
         try {
             $teamCount = (int)Database::one('SELECT COUNT(*) c FROM teams WHERE sport_type = ?', [$sport])['c'];
             $matchCount = (int)Database::one('SELECT COUNT(*) c FROM matches WHERE sport_type = ?', [$sport])['c'];
-            return ($teamCount > 0 && $matchCount > 0);
+            $groupCount = (int)Database::one('SELECT COUNT(*) c FROM `groups` WHERE sport_type = ?', [$sport])['c'];
+            return ($teamCount > 0 || $matchCount > 0 || $groupCount > 0);
         } catch (\Throwable) {
             return false;
         }
@@ -95,17 +97,19 @@ final class Sports
 
     /**
      * Status spesifik turnamen cabor:
-     * - not_started : Belum Dimulai (belum ada tim atau belum ada bracket)
+     * - not_started : Belum Dimulai (belum ada tim DAN belum ada bracket/grup)
      * - live        : Sedang Berlangsung (ada match berstatus live)
-     * - finished    : Selesai (seluruh match sudah selesai)
-     * - ready       : Siap Bertanding (tim dan jadwal match sudah siap)
+     * - finished    : Selesai (seluruh match sudah selesai dan minimal ada match)
+     * - ready       : Siap Bertanding (salah satu atau kedua tim/bracket/grup sudah ada)
      */
     public static function status(string $sport): string
     {
         try {
             $teamCount = (int)Database::one('SELECT COUNT(*) c FROM teams WHERE sport_type = ?', [$sport])['c'];
             $matchCount = (int)Database::one('SELECT COUNT(*) c FROM matches WHERE sport_type = ?', [$sport])['c'];
-            if ($teamCount === 0 || $matchCount === 0) {
+            $groupCount = (int)Database::one('SELECT COUNT(*) c FROM `groups` WHERE sport_type = ?', [$sport])['c'];
+
+            if ($teamCount === 0 && $matchCount === 0 && $groupCount === 0) {
                 return 'not_started';
             }
             $liveCount = (int)Database::one("SELECT COUNT(*) c FROM matches WHERE sport_type = ? AND status = 'live'", [$sport])['c'];
@@ -113,7 +117,7 @@ final class Sports
                 return 'live';
             }
             $finishedCount = (int)Database::one("SELECT COUNT(*) c FROM matches WHERE sport_type = ? AND status = 'finished'", [$sport])['c'];
-            if ($finishedCount > 0 && $finishedCount === $matchCount) {
+            if ($matchCount > 0 && $finishedCount === $matchCount) {
                 return 'finished';
             }
             return 'ready';

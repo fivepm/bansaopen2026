@@ -32,7 +32,23 @@
         <td><span class="badge"><?= e(category_label($t['category'] ?? 'umum')) ?></span></td>
       <?php endif; ?>
       <td><b><?= e($t['name']) ?></b></td>
-      <td><?= e($t['members']) ?></td>
+      <td>
+        <?php
+          $mList = parse_team_members($t['members'] ?? null);
+        ?>
+        <?php if (!empty($mList)): ?>
+          <div class="space-y-1 text-xs text-slate-300 min-w-[140px]">
+            <?php foreach ($mList as $idx => $mName): ?>
+              <div class="flex items-center gap-1.5 leading-snug">
+                <span class="text-[10px] text-slate-500 font-mono"><?= $idx + 1 ?>.</span>
+                <span class="font-medium text-slate-200"><?= e($mName) ?></span>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        <?php else: ?>
+          <span class="text-slate-500 italic text-xs">-</span>
+        <?php endif; ?>
+      </td>
       <td><?= e($t['institution']) ?></td>
       <td><?= e($t['contact']) ?></td>
       <td class="actions">

@@ -96,9 +96,13 @@ final class PublicController
         $liveMatches = MatchModel::byStatus($sport, 'live', 'm.round, m.position');
         $finishedMatches = MatchModel::byStatus($sport, 'finished', 'm.updated_at DESC');
 
+        $matchIds = array_merge(array_column($liveMatches, 'id'), array_column($finishedMatches, 'id'));
+        $highlights = \App\Models\MatchHighlight::forMatches($matchIds);
+
         $brackets = [];
         $standings = [];
         $groupMatches = [];
+        $playoffs = [];
 
         if ($system === 'knockout') {
             foreach ($categories as $catKey => $catLabel) {
@@ -107,6 +111,7 @@ final class PublicController
         } else {
             $standings = Standing::forSport($sport);
             $groupMatches = MatchModel::groupMatches($sport);
+            $playoffs = Standing::getPlayoffMatches($sport);
         }
 
         View::render('public/sport', [
@@ -126,6 +131,8 @@ final class PublicController
             'brackets'         => $brackets,
             'standings'        => $standings,
             'groupMatches'     => $groupMatches,
+            'playoffs'         => $playoffs,
+            'highlights'       => $highlights,
             'hideTabs'         => true,
             'fullWidth'        => true,
         ]);
@@ -156,19 +163,27 @@ final class PublicController
             [$sport]
         );
 
+        $matchIds = array_merge(array_column($liveMatches, 'id'), array_column($finishedMatches, 'id'));
+        $highlights = \App\Models\MatchHighlight::forMatches($matchIds);
+
         // 3. Render HTML tab Live & tab Hasil
         $liveHtml = View::partial('partials/live_matches_content', [
             'liveMatches' => $liveMatches,
+            'highlights'  => $highlights,
             'sport'       => $sport,
         ]);
 
         $finishedHtml = View::partial('partials/finished_matches_content', [
             'finishedMatches' => $finishedMatches,
+            'highlights'      => $highlights,
             'sport'           => $sport,
         ]);
 
-        // 4. Render HTML Bagan Pertandingan per kategori (Knockout)
+        // 4. Render HTML Bagan Pertandingan per kategori (Knockout) atau Klasemen & Playoff (Group)
         $bracketsHtml = [];
+        $standingsHtml = '';
+        $playoffsHtml = '';
+
         if ($system === 'knockout') {
             foreach ($categories as $catKey => $catLabel) {
                 $bracket = MatchModel::twoSidedBracket($sport, $catKey);
@@ -178,6 +193,21 @@ final class PublicController
                     'sport'   => $sport,
                 ]);
             }
+        } else {
+            $standings = \App\Models\Standing::forSport($sport);
+            $groupMatches = MatchModel::groupMatches($sport);
+            $playoffs = \App\Models\Standing::getPlayoffMatches($sport);
+
+            $standingsHtml = View::partial('partials/group_standings_content', [
+                'standings'    => $standings,
+                'groupMatches' => $groupMatches,
+                'sport'        => $sport,
+            ]);
+
+            $playoffsHtml = View::partial('partials/playoff_content', [
+                'playoffs' => $playoffs,
+                'sport'    => $sport,
+            ]);
         }
 
         // 5. Identifikasi status dan hash untuk sinkronisasi DOM presisi
@@ -185,8 +215,26 @@ final class PublicController
         $finishedIds = array_map(static fn($m) => (int)$m['id'], $finishedMatches);
 
         $statusHash = md5(json_encode([$liveIds, $finishedIds], JSON_THROW_ON_ERROR));
-        $liveScoreHash = md5(json_encode($liveMatches, JSON_THROW_ON_ERROR));
+
+        // State skor stabil: tidak menyertakan detik timer berjalan agar polling tidak memicu flicker/kedip DOM
+        $scoreState = array_map(static fn($m) => [
+            'id'              => (int)$m['id'],
+            'status'          => $m['status'],
+            'current_set'     => (int)($m['current_set'] ?? 0),
+            'is_set_finished' => (int)($m['is_set_finished'] ?? 0),
+            'score1'          => (int)($m['score1'] ?? 0),
+            'score2'          => (int)($m['score2'] ?? 0),
+            'set1_a'          => (int)($m['set1_a'] ?? 0),
+            'set1_b'          => (int)($m['set1_b'] ?? 0),
+            'set2_a'          => (int)($m['set2_a'] ?? 0),
+            'set2_b'          => (int)($m['set2_b'] ?? 0),
+            'set3_a'          => (int)($m['set3_a'] ?? 0),
+            'set3_b'          => (int)($m['set3_b'] ?? 0),
+        ], $liveMatches);
+
+        $liveScoreHash = md5(json_encode([$scoreState, $highlights], JSON_THROW_ON_ERROR));
         $bracketHash = md5(json_encode($bracketsHtml, JSON_THROW_ON_ERROR));
+        $standingsHash = md5($standingsHtml . $playoffsHtml);
 
         View::json([
             'ok'              => true,
@@ -198,10 +246,14 @@ final class PublicController
             'status_hash'     => $statusHash,
             'live_score_hash' => $liveScoreHash,
             'bracket_hash'    => $bracketHash,
+            'standings_hash'  => $standingsHash,
             'live_html'       => $liveHtml,
             'finished_html'   => $finishedHtml,
             'brackets_html'   => $bracketsHtml,
+            'standings_html'  => $standingsHtml,
+            'playoffs_html'   => $playoffsHtml,
             'matches'         => $liveMatches,
+            'highlights'      => $highlights,
             'timestamp'       => time(),
         ]);
     }

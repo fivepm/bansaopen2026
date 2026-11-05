@@ -79,7 +79,8 @@ function category_label(string $cat): string
 function match_stage_label(array $m, int $knockoutRounds): string
 {
     if (($m['stage'] ?? 'knockout') === 'group') {
-        return ($m['group_name'] ?? 'Grup') . ' · Hari ke-' . (int)$m['round'];
+        $prefix = (($m['sport_type'] ?? '') === 'futsal') ? 'Match ke-' : 'Hari ke-';
+        return ($m['group_name'] ?? 'Grup') . ' · ' . $prefix . (int)$m['round'];
     }
     $side = $m['bracket_side'] ?? 'left';
     if ($side === 'third_place') {
@@ -159,6 +160,79 @@ function parse_team_members(?string $members): array
 function is_admin(): bool
 {
     return Auth::check();
+}
+
+/**
+ * Mengembalikan placeholder teks nama tim jika slot tim masih kosong / belum ditentukan.
+ * - Futsal / Group Playoff:
+ *     - Final: Slot 1 => "Juara Grup A", Slot 2 => "Juara Grup B"
+ *     - Perebutan Juara 3: Slot 1 => "Runner Up Grup A", Slot 2 => "Runner Up Grup B"
+ * - Knockout (Badminton & Pingpong):
+ *     - Final: Slot 1 => "Winner Semifinal 1", Slot 2 => "Winner Semifinal 2"
+ *     - Perebutan Juara 3: Slot 1 => "Runner-up Semifinal 1", Slot 2 => "Runner-up Semifinal 2"
+ *     - Round > 1: "Winner Match #<round-1>-<prev_pos>"
+ *     - Round <= 1 / Group Biasa: "TBD"
+ */
+function match_team_placeholder(array $m, int $slotNum, ?int $totalRounds = null): string
+{
+    $sport = $m['sport_type'] ?? '';
+    $isGroupSystem = ($sport === 'futsal' || \App\Models\Sports::system($sport) === 'group');
+    $stage = $m['stage'] ?? 'knockout';
+    $bracketSide = $m['bracket_side'] ?? 'left';
+
+    // 1. Cabor Futsal / Sistem Group Playoff
+    if ($isGroupSystem) {
+        if ($bracketSide === 'final') {
+            return ($slotNum === 1) ? 'Juara Grup A' : 'Juara Grup B';
+        }
+        if ($bracketSide === 'third_place') {
+            return ($slotNum === 1) ? 'Runner Up Grup A' : 'Runner Up Grup B';
+        }
+        return 'TBD';
+    }
+
+    // 2. Cabor Sistem Gugur (Badminton & Tenis Meja)
+    if ($stage === 'knockout') {
+        if ($bracketSide === 'final') {
+            return ($slotNum === 1) ? 'Winner Semifinal 1' : 'Winner Semifinal 2';
+        }
+        if ($bracketSide === 'third_place') {
+            return ($slotNum === 1) ? 'Runner-up Semifinal 1' : 'Runner-up Semifinal 2';
+        }
+
+        $round = (int)($m['round'] ?? 1);
+        if ($round <= 1) {
+            return 'TBD';
+        }
+
+        if ($totalRounds === null && !empty($m['sport_type'])) {
+            $cat = $m['category'] ?? 'umum';
+            $totalRounds = \App\Models\MatchModel::knockoutRounds($m['sport_type'], $cat);
+        }
+
+        $pos = (int)($m['position'] ?? 1);
+        $prevRound = $round - 1;
+
+        if ($bracketSide === 'left') {
+            $prevPos = ($slotNum === 1) ? ($pos * 2 - 1) : ($pos * 2);
+            return "Winner Match #{$prevRound}-{$prevPos}";
+        }
+
+        if ($bracketSide === 'right') {
+            if ($totalRounds && $totalRounds > 1) {
+                $count = (int)pow(2, $totalRounds - $round);
+                $offset = intdiv($count, 2);
+                $relPos = max(1, $pos - $offset);
+                $prevOffset = intdiv((int)pow(2, $totalRounds - $prevRound), 2);
+                $prevPos = ($slotNum === 1) ? ($prevOffset + $relPos * 2 - 1) : ($prevOffset + $relPos * 2);
+                return "Winner Match #{$prevRound}-{$prevPos}";
+            }
+            $prevPos = ($slotNum === 1) ? ($pos * 2 - 1) : ($pos * 2);
+            return "Winner Match #{$prevRound}-{$prevPos}";
+        }
+    }
+
+    return 'TBD';
 }
 
 /** URL Favicon web menggunakan logo turnamen Bansa Open. */

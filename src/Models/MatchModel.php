@@ -220,6 +220,48 @@ final class MatchModel
         $set3A = (int)($m['set3_a'] ?? 0);
         $set3B = (int)($m['set3_b'] ?? 0);
 
+        if (($m['sport_type'] ?? '') === 'futsal') {
+            // Format Futsal: Waktu Normal (Babak 1 dan Babak 2)
+            // Total gol = Babak 1 + Babak 2
+            $finalA = $set1A + $set2A;
+            $finalB = $set1B + $set2B;
+
+            // Fallback jika nilai babak 0 tetapi score1/score2 sudah ada
+            if ($finalA === 0 && $finalB === 0 && ((int)($m['score1'] ?? 0) > 0 || (int)($m['score2'] ?? 0) > 0)) {
+                $finalA = (int)($m['score1'] ?? 0);
+                $finalB = (int)($m['score2'] ?? 0);
+            }
+
+            if ($finalA === $finalB) {
+                // Pada fase grup, hasil SERI diperbolehkan dan sah (masing-masing 1 poin klasemen)
+                if (($m['stage'] ?? '') === 'group') {
+                    return [
+                        'winner_id' => null,
+                        'loser_id'  => null,
+                        'score1'    => $finalA,
+                        'score2'    => $finalB,
+                        'error'     => null,
+                    ];
+                }
+                // Jika pada babak final / perebutan juara 3 sistem gugur, harus ada pemenang (misal adu penalti)
+                return [
+                    'winner_id' => null,
+                    'loser_id'  => null,
+                    'score1'    => $finalA,
+                    'score2'    => $finalB,
+                    'error'     => "Skor waktu normal masih imbang ($finalA - $finalB). Babak final harus memiliki pemenang (adu penalti).",
+                ];
+            }
+
+            return [
+                'winner_id' => ($finalA > $finalB) ? $t1 : $t2,
+                'loser_id'  => ($finalA > $finalB) ? $t2 : $t1,
+                'score1'    => $finalA,
+                'score2'    => $finalB,
+                'error'     => null,
+            ];
+        }
+
         if ($system === 'poin_lanjut') {
             // Sistem Poin Lanjut: Set 2 melanjutkan skor terakhir dari Set 1 (Carry-Over Score).
             // Nilai Set 2 adalah skor akumulasi paling akhir sebagai penentu pemenang.

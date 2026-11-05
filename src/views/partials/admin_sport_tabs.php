@@ -2,7 +2,9 @@
 /** Tab navigasi admin per cabor. Butuh $sport. */
 $sys = \App\Models\Sports::system($sport);
 $path = trim((string)parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
-$tabs = ['' => 'Ringkasan', 'teams' => 'Tim', 'matches' => $sys === 'group' ? 'Pertandingan & Skor' : 'Bracket & Skor'] + ($sys === 'group' ? ['groups' => 'Grup & Klasemen'] : []);
+$tabs = ['' => 'Ringkasan', 'teams' => 'Tim', 'matches' => $sys === 'group' ? 'Pertandingan & Skor' : 'Bracket & Skor']
+    + ($sys === 'group' ? ['groups' => 'Grup & Klasemen', 'group-draw' => '🎰 Undian Grup'] : [])
+    + (\App\Controllers\Admin\DrawController::supports($sport) ? ['draw' => '🎰 Undian Tim'] : []);
 ?>
 <div class="mb-4 flex items-center gap-3">
   <span class="text-3xl"><?= \App\Models\Sports::emoji($sport) ?></span>

@@ -5,6 +5,7 @@
  */
 $w = !empty($m['winner_id']) ? (int)$m['winner_id'] : null;
 $system = $m['scoring_system'] ?? 'rubber_set';
+$isFutsal = (($m['sport_type'] ?? '') === 'futsal');
 
 // Poin per set
 $s1a = (int)($m['set1_a'] ?? 0);
@@ -34,7 +35,15 @@ $is2_0 = ($win1_a && $win2_a) || ($win1_b && $win2_b);
 $is1_1 = ($win1_a && $win2_b) || ($win1_b && $win2_a);
 
 // Nilai kolom skor per tim:
-if ($system === 'poin_lanjut') {
+if ($isFutsal) {
+    // 2 Kolom untuk Futsal: Babak 1 dan Babak 2
+    $col1_a = $played1 ? $s1a : ($m['status'] === 'live' ? 0 : '-');
+    $col1_b = $played1 ? $s1b : ($m['status'] === 'live' ? 0 : '-');
+    $col2_a = $played2 ? $s2a : ($m['status'] === 'live' ? 0 : '-');
+    $col2_b = $played2 ? $s2b : ($m['status'] === 'live' ? 0 : '-');
+    $col3_a = null;
+    $col3_b = null;
+} elseif ($system === 'poin_lanjut') {
     // 2 Kolom Skor untuk Sistem Poin Lanjut:
     // Kolom Set 1: Menampilkan skor akhir saat Set 1 selesai (titik tengah pertandingan)
     $col1_a = $played1 ? $s1a : ($m['status'] === 'live' ? 0 : '-');
@@ -90,105 +99,170 @@ if ($system === 'poin_lanjut') {
 ?>
 <div class="match <?= e($m['status']) ?>" id="match-card-<?= (int)$m['id'] ?>">
   <!-- Header: Nomor, Lapangan, Keterangan Sistem Set, Status -->
-  <div class="mhead flex items-center justify-between gap-1.5 px-3 py-1.5 bg-slate-950/80 border-b border-slate-800 text-xs">
-    <div class="flex items-center gap-1.5 truncate">
-      <span class="font-bold text-slate-300">#<?= (int)$m['round'] ?>-<?= (int)$m['position'] ?><?= !empty($m['court']) ? ' · ' . e($m['court']) : '' ?></span>
-      <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border <?= $system === 'poin_lanjut' ? 'bg-amber-950/50 text-amber-300 border-amber-500/40' : 'bg-cyan-950/50 text-cyan-300 border-cyan-500/40' ?>" title="Sistem Pertandingan">
-        <?= $system === 'poin_lanjut' ? 'Poin Lanjut (2 Set)' : 'Rubber Set' ?>
-      </span>
+  <div class="mhead flex items-center justify-between gap-2 px-3.5 py-2 bg-slate-950/80 border-b border-slate-800 text-xs">
+    <div class="flex items-center gap-1.5 min-w-0 flex-1">
+      <span class="font-bold text-slate-300 shrink-0">#<?= (int)$m['round'] ?>-<?= (int)$m['position'] ?><?= !empty($m['court']) ? ' · ' . e($m['court']) : '' ?></span>
+      <?php if ($isFutsal): ?>
+        <?php $isPlayoffStage = ($m['stage'] === 'knockout' || in_array($m['bracket_side'] ?? '', ['final', 'third_place'], true)); ?>
+        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border shrink-0 <?= $isPlayoffStage ? 'bg-amber-950/50 text-amber-300 border-amber-500/40' : 'bg-emerald-950/50 text-emerald-300 border-emerald-500/40' ?>" title="<?= $isPlayoffStage ? 'Tipe Playoff' : 'Tipe Fase Grup' ?>">
+          <?= $isPlayoffStage ? '🏆 Playoff' : '⚽ Grup' ?>
+        </span>
+      <?php else: ?>
+        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border shrink-0 <?= $system === 'poin_lanjut' ? 'bg-amber-950/50 text-amber-300 border-amber-500/40' : 'bg-cyan-950/50 text-cyan-300 border-cyan-500/40' ?>" title="Sistem Pertandingan">
+          <?= $system === 'poin_lanjut' ? 'Poin Lanjut (2 Set)' : 'Rubber Set' ?>
+        </span>
+      <?php endif; ?>
     </div>
     <span class="badge <?= e($m['status']) ?> text-[10px] !py-0.5 !px-2 shrink-0">
-      <?= ($m['status'] === 'live' && !empty($m['current_set'])) ? 'LIVE (Set ' . (int)$m['current_set'] . ')' : e(status_label($m['status'])) ?>
+      <?php if ($m['status'] === 'live' && !empty($m['current_set'])): ?>
+        LIVE (<?= $isFutsal ? 'Babak ' : 'Set ' ?><?= (int)$m['current_set'] ?>)
+      <?php else: ?>
+        <?= e(status_label($m['status'])) ?>
+      <?php endif; ?>
     </span>
   </div>
 
-  <!-- Header Kolom Set (S1, S2, dan opsional S3) -->
-  <div class="flex items-center justify-between px-3 pt-1.5 pb-1 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-800/40 bg-slate-950/30">
+  <!-- Header Kolom Set / Babak -->
+  <div class="flex items-center justify-between px-3.5 pt-1.5 pb-1 text-[10px] uppercase font-bold text-slate-500 border-b border-slate-800/40 bg-slate-950/30">
     <span>Tim &amp; Pemain</span>
     <div class="flex items-center gap-1.5 text-center font-mono">
-      <span class="w-6 text-slate-400" title="<?= $system === 'poin_lanjut' ? 'Set 1 (Skor Titik Tengah)' : 'Set 1' ?>">S1</span>
-      <span class="w-6 text-slate-400" title="<?= $system === 'poin_lanjut' ? 'Set 2 (Skor Akumulasi Akhir)' : 'Set 2' ?>">S2</span>
-      <?php if ($system === 'rubber_set'): ?>
-        <span class="w-6 text-slate-400" title="Set 3 (Rubber Game)">S3</span>
+      <?php if ($isFutsal): ?>
+        <span class="w-10 text-slate-400 font-bold" title="Skor Pertandingan (Total Gol)">Skor</span>
+      <?php else: ?>
+        <span class="w-6 text-slate-400" title="<?= $system === 'poin_lanjut' ? 'Set 1 (Skor Titik Tengah)' : 'Set 1' ?>">
+          S1
+        </span>
+        <span class="w-6 text-slate-400" title="<?= $system === 'poin_lanjut' ? 'Set 2 (Skor Akumulasi Akhir)' : 'Set 2' ?>">
+          S2
+        </span>
+        <?php if ($system === 'rubber_set'): ?>
+          <span class="w-6 text-slate-400" title="Set 3 (Rubber Game)">S3</span>
+        <?php endif; ?>
       <?php endif; ?>
     </div>
   </div>
 
   <!-- Tim 1 -->
-  <?php $m1Members = parse_team_members($m['team1_members'] ?? null); ?>
-  <div class="team <?= $w && $w == $m['team1_id'] ? 'win' : '' ?> flex items-center justify-between border-b border-slate-800/60 px-3 py-2 gap-2">
+  <?php
+    $m1Members = parse_team_members($m['team1_members'] ?? null);
+    $p1 = match_team_placeholder($m, 1, $R ?? $totalRounds ?? null);
+    $hasT1 = !empty($m['team1_name']);
+  ?>
+  <div class="team <?= $w && $w == $m['team1_id'] ? 'win' : '' ?> flex items-center justify-between border-b border-slate-800/60 px-3.5 py-2.5 gap-2.5">
     <div class="min-w-0 flex-1">
-      <div class="truncate text-xs font-bold leading-snug <?= $w && $w == $m['team1_id'] ? '!text-emerald-300' : 'text-slate-100' ?>" title="<?= !empty($m['team1_name']) ? e($m['team1_name']) : 'TBD' ?>">
-        <?= !empty($m['team1_name']) ? e($m['team1_name']) : '<i class="text-slate-500 font-normal">TBD</i>' ?>
+      <div class="text-xs font-bold leading-snug break-words <?= $w && $w == $m['team1_id'] ? '!text-emerald-300' : ($hasT1 ? 'text-slate-100' : 'text-slate-400') ?>" title="<?= e($hasT1 ? $m['team1_name'] : $p1) ?>">
+        <?php if ($hasT1): ?>
+          <?= e($m['team1_name']) ?>
+        <?php else: ?>
+          <span class="inline-flex items-center gap-1.5 text-slate-400 font-semibold italic">
+            <span class="opacity-60 not-italic text-[10px]">⏱</span>
+            <span><?= e($p1) ?></span>
+          </span>
+        <?php endif; ?>
       </div>
-      <?php if (!empty($m1Members)): ?>
-        <div class="mt-0.5 space-y-0.5 leading-tight">
+      <?php if (!empty($m1Members) && !$isFutsal): ?>
+        <div class="mt-1 space-y-0.5 leading-tight">
           <?php foreach ($m1Members as $member): ?>
-            <div class="truncate text-[10px] text-slate-400 font-normal flex items-center gap-1" title="<?= e($member) ?>">
-              <span class="text-[9px] text-slate-600">👤</span>
-              <span class="truncate"><?= e($member) ?></span>
+            <div class="text-[10px] text-slate-400 font-normal flex items-center gap-1.5 break-words" title="<?= e($member) ?>">
+              <span class="text-[9px] text-slate-500">👤</span>
+              <span class="break-words"><?= e($member) ?></span>
             </div>
           <?php endforeach; ?>
         </div>
       <?php endif; ?>
     </div>
     <div class="flex items-center gap-1.5 font-mono text-xs shrink-0 self-center">
-      <span class="w-6 text-center py-0.5 rounded border border-slate-800/80 <?= ($win1_a && $played1) ? 'bg-emerald-950/60 text-emerald-300 font-bold border-emerald-500/30' : ($col1_a === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
-        <?= $col1_a ?>
-      </span>
-      <span class="w-6 text-center py-0.5 rounded border border-slate-800/80 <?= ($win2_a && $col2_a !== '-') ? 'bg-emerald-950/60 text-emerald-300 font-bold border-emerald-500/30' : ($col2_a === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
-        <?= $col2_a ?>
-      </span>
-      <?php if ($system === 'rubber_set'): ?>
-        <span class="w-6 text-center py-0.5 rounded border border-slate-800/80 <?= ($win3_a && $played3 && $is1_1) ? 'bg-emerald-950/60 text-emerald-300 font-bold border-emerald-500/30' : ($col3_a === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
-          <?= $col3_a ?>
+      <?php if ($isFutsal): ?>
+        <?php
+          $futsalScore1 = ($m['status'] === 'upcoming') ? '-' : (int)($m['score1'] ?? 0);
+          $t1Win = ($w && $w == $m['team1_id']);
+        ?>
+        <span class="w-10 text-center py-0.5 rounded border border-slate-800/80 font-bold <?= $t1Win ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/30' : ($futsalScore1 === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
+          <?= $futsalScore1 ?>
         </span>
+      <?php else: ?>
+        <span class="w-6 text-center py-0.5 rounded border border-slate-800/80 <?= ($win1_a && $played1) ? 'bg-emerald-950/60 text-emerald-300 font-bold border-emerald-500/30' : ($col1_a === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
+          <?= $col1_a ?>
+        </span>
+        <span class="w-6 text-center py-0.5 rounded border border-slate-800/80 <?= ($win2_a && $col2_a !== '-') ? 'bg-emerald-950/60 text-emerald-300 font-bold border-emerald-500/30' : ($col2_a === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
+          <?= $col2_a ?>
+        </span>
+        <?php if ($system === 'rubber_set'): ?>
+          <span class="w-6 text-center py-0.5 rounded border border-slate-800/80 <?= ($win3_a && $played3 && $is1_1) ? 'bg-emerald-950/60 text-emerald-300 font-bold border-emerald-500/30' : ($col3_a === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
+            <?= $col3_a ?>
+          </span>
+        <?php endif; ?>
       <?php endif; ?>
     </div>
   </div>
 
   <!-- Tim 2 -->
-  <?php $m2Members = parse_team_members($m['team2_members'] ?? null); ?>
-  <div class="team <?= $w && $w == $m['team2_id'] ? 'win' : '' ?> flex items-center justify-between px-3 py-2 gap-2">
+  <?php
+    $m2Members = parse_team_members($m['team2_members'] ?? null);
+    $p2 = match_team_placeholder($m, 2, $R ?? $totalRounds ?? null);
+    $hasT2 = !empty($m['team2_name']);
+  ?>
+  <div class="team <?= $w && $w == $m['team2_id'] ? 'win' : '' ?> flex items-center justify-between px-3.5 py-2.5 gap-2.5">
     <div class="min-w-0 flex-1">
-      <div class="truncate text-xs font-bold leading-snug <?= $w && $w == $m['team2_id'] ? '!text-emerald-300' : 'text-slate-100' ?>" title="<?= !empty($m['team2_name']) ? e($m['team2_name']) : 'TBD' ?>">
-        <?= !empty($m['team2_name']) ? e($m['team2_name']) : '<i class="text-slate-500 font-normal">TBD</i>' ?>
+      <div class="text-xs font-bold leading-snug break-words <?= $w && $w == $m['team2_id'] ? '!text-emerald-300' : ($hasT2 ? 'text-slate-100' : 'text-slate-400') ?>" title="<?= e($hasT2 ? $m['team2_name'] : $p2) ?>">
+        <?php if ($hasT2): ?>
+          <?= e($m['team2_name']) ?>
+        <?php else: ?>
+          <span class="inline-flex items-center gap-1.5 text-slate-400 font-semibold italic">
+            <span class="opacity-60 not-italic text-[10px]">⏱</span>
+            <span><?= e($p2) ?></span>
+          </span>
+        <?php endif; ?>
       </div>
-      <?php if (!empty($m2Members)): ?>
-        <div class="mt-0.5 space-y-0.5 leading-tight">
+      <?php if (!empty($m2Members) && !$isFutsal): ?>
+        <div class="mt-1 space-y-0.5 leading-tight">
           <?php foreach ($m2Members as $member): ?>
-            <div class="truncate text-[10px] text-slate-400 font-normal flex items-center gap-1" title="<?= e($member) ?>">
-              <span class="text-[9px] text-slate-600">👤</span>
-              <span class="truncate"><?= e($member) ?></span>
+            <div class="text-[10px] text-slate-400 font-normal flex items-center gap-1.5 break-words" title="<?= e($member) ?>">
+              <span class="text-[9px] text-slate-500">👤</span>
+              <span class="break-words"><?= e($member) ?></span>
             </div>
           <?php endforeach; ?>
         </div>
       <?php endif; ?>
     </div>
     <div class="flex items-center gap-1.5 font-mono text-xs shrink-0 self-center">
-      <span class="w-6 text-center py-0.5 rounded border border-slate-800/80 <?= ($win1_b && $played1) ? 'bg-emerald-950/60 text-emerald-300 font-bold border-emerald-500/30' : ($col1_b === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
-        <?= $col1_b ?>
-      </span>
-      <span class="w-6 text-center py-0.5 rounded border border-slate-800/80 <?= ($win2_b && $col2_b !== '-') ? 'bg-emerald-950/60 text-emerald-300 font-bold border-emerald-500/30' : ($col2_b === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
-        <?= $col2_b ?>
-      </span>
-      <?php if ($system === 'rubber_set'): ?>
-        <span class="w-6 text-center py-0.5 rounded border border-slate-800/80 <?= ($win3_b && $played3 && $is1_1) ? 'bg-emerald-950/60 text-emerald-300 font-bold border-emerald-500/30' : ($col3_b === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
-          <?= $col3_b ?>
+      <?php if ($isFutsal): ?>
+        <?php
+          $futsalScore2 = ($m['status'] === 'upcoming') ? '-' : (int)($m['score2'] ?? 0);
+          $t2Win = ($w && $w == $m['team2_id']);
+        ?>
+        <span class="w-10 text-center py-0.5 rounded border border-slate-800/80 font-bold <?= $t2Win ? 'bg-emerald-950/60 text-emerald-300 border-emerald-500/30' : ($futsalScore2 === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
+          <?= $futsalScore2 ?>
         </span>
+      <?php else: ?>
+        <span class="w-6 text-center py-0.5 rounded border border-slate-800/80 <?= ($win1_b && $played1) ? 'bg-emerald-950/60 text-emerald-300 font-bold border-emerald-500/30' : ($col1_b === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
+          <?= $col1_b ?>
+        </span>
+        <span class="w-6 text-center py-0.5 rounded border border-slate-800/80 <?= ($win2_b && $col2_b !== '-') ? 'bg-emerald-950/60 text-emerald-300 font-bold border-emerald-500/30' : ($col2_b === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
+          <?= $col2_b ?>
+        </span>
+        <?php if ($system === 'rubber_set'): ?>
+          <span class="w-6 text-center py-0.5 rounded border border-slate-800/80 <?= ($win3_b && $played3 && $is1_1) ? 'bg-emerald-950/60 text-emerald-300 font-bold border-emerald-500/30' : ($col3_b === '-' ? 'text-slate-500 bg-slate-950/40' : 'text-slate-200 bg-slate-950/70') ?>">
+            <?= $col3_b ?>
+          </span>
+        <?php endif; ?>
       <?php endif; ?>
     </div>
   </div>
 
   <!-- Footer: Hari, Tanggal, Jam, dan Status Pemenang jika Selesai -->
-  <div class="mfoot flex items-center justify-between gap-1 px-3 py-1.5 bg-slate-950/60 border-t border-slate-800/80 text-[11px] text-slate-400">
-    <span class="truncate flex items-center gap-1.5">
-      <span>📅</span>
-      <span><?= e(fmt_dt($m['scheduled_at'])) ?></span>
+  <div class="mfoot flex items-center justify-between gap-1.5 px-3.5 py-2 bg-slate-950/60 border-t border-slate-800/80 text-[11px] text-slate-400">
+    <span class="flex items-center gap-1.5 min-w-0 flex-1 truncate" title="<?= e(fmt_dt($m['scheduled_at'])) ?>">
+      <span class="shrink-0">📅</span>
+      <span class="truncate"><?= e(fmt_dt($m['scheduled_at'])) ?></span>
     </span>
     <?php if ($w): ?>
-      <span class="text-[10px] font-bold text-emerald-400 shrink-0">
+      <span class="text-[10px] font-bold text-emerald-400 shrink-0" title="Pemenang: <?= e($m['winner_name'] ?? 'Pemenang') ?>">
         Menang: <?= e($m['winner_name'] ?? 'Pemenang') ?>
+      </span>
+    <?php elseif ($m['status'] === 'finished' && $isFutsal): ?>
+      <span class="text-[10px] font-bold text-amber-400 shrink-0">
+        Hasil: Seri (Draw)
       </span>
     <?php endif; ?>
   </div>

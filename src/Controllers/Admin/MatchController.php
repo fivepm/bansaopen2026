@@ -43,6 +43,7 @@ final class MatchController
             'teams'        => $teams,
             'groups'       => $system === 'group' ? GroupModel::forSport($sport) : [],
             'groupMatches' => $system === 'group' ? MatchModel::groupMatches($sport) : [],
+            'playoffs'     => $system === 'group' ? \App\Models\Standing::getPlayoffMatches($sport) : [],
         ], 'layouts/admin');
     }
 
@@ -182,6 +183,12 @@ final class MatchController
             ? $_POST['scoring_system']
             : ($m['scoring_system'] ?? 'rubber_set');
 
+        $futsalHalfDuration = isset($_POST['futsal_half_duration']) ? max(1, min(60, (int)$_POST['futsal_half_duration'])) : (int)($m['futsal_half_duration'] ?? 5);
+        $stage = $m['stage'] ?? 'group';
+        if ($sport === 'futsal' && isset($_POST['stage'])) {
+            $stage = ($_POST['stage'] === 'playoff') ? 'knockout' : 'group';
+        }
+
         // Pengaturan Jadwal Pertandingan (Hari, Tanggal, dan Jam) & Lapangan
         $schedDate = trim($_POST['schedule_date'] ?? '');
         $schedTime = trim($_POST['schedule_time'] ?? '');
@@ -200,9 +207,11 @@ final class MatchController
                 redirect("admin/$sport/matches$catParam");
             }
 
-            Database::query('UPDATE matches SET status = ?, scoring_system = ?, scheduled_at = ?, court = ?, current_set = 0, is_set_finished = 0 WHERE id = ?', [
+            Database::query('UPDATE matches SET status = ?, scoring_system = ?, stage = ?, futsal_half_duration = ?, scheduled_at = ?, court = ?, current_set = 0, is_set_finished = 0 WHERE id = ?', [
                 $status,
                 $scoringSystem,
+                $stage,
+                $futsalHalfDuration,
                 $scheduledAt,
                 $court,
                 $m['id']
@@ -216,6 +225,26 @@ final class MatchController
         if ($status === 'finished') {
             if (empty($m['team1_id']) || empty($m['team2_id'])) {
                 flash('error', 'Kedua tim harus ditentukan terlebih dahulu sebelum menyelesaikan pertandingan.');
+                redirect("admin/$sport/matches$catParam");
+            }
+
+            if ($sport === 'futsal') {
+                // Futsal: skor mutlak berasal dari highlight gol
+                $refreshed = $this->find($sport, (int)$id);
+                $s1 = (int)($refreshed['score1'] ?? 0);
+                $s2 = (int)($refreshed['score2'] ?? 0);
+                $winnerId = ($s1 > $s2) ? (int)$m['team1_id'] : (($s2 > $s1) ? (int)$m['team2_id'] : null);
+
+                Database::query(
+                    'UPDATE matches SET stage = ?, futsal_half_duration = ?, scheduled_at = ?, court = ?, status = ?, score1 = ?, score2 = ?, winner_id = ? WHERE id = ?',
+                    [$stage, $futsalHalfDuration, $scheduledAt, $court, 'finished', $s1, $s2, $winnerId, $m['id']]
+                );
+
+                if (!empty($m['group_id'])) {
+                    \App\Models\Standing::recalculate((int)$m['group_id']);
+                }
+
+                flash('success', "Pertandingan Futsal diselesaikan dengan skor $s1 - $s2.");
                 redirect("admin/$sport/matches$catParam");
             }
 
@@ -257,8 +286,10 @@ final class MatchController
         }
 
         // Jika Belum Mulai (upcoming):
-        Database::query('UPDATE matches SET scoring_system = ?, scheduled_at = ?, court = ? WHERE id = ?', [
+        Database::query('UPDATE matches SET scoring_system = ?, stage = ?, futsal_half_duration = ?, scheduled_at = ?, court = ? WHERE id = ?', [
             $scoringSystem,
+            $stage,
+            $futsalHalfDuration,
             $scheduledAt,
             $court,
             $m['id']

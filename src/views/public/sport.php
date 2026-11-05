@@ -112,20 +112,28 @@ $hasMultipleCategories = (count($categories) > 1);
     <span id="tab-live-count" class="rounded-full bg-red-500 px-2 py-0.2 text-[11px] font-bold text-white <?= $liveCount > 0 ? '' : 'hidden' ?>"><?= $liveCount ?></span>
   </button>
 
-  <!-- Tab 2: Bracket / Klasemen -->
+  <!-- Tab 2: Bracket / Klasemen (Fase Grup) -->
   <button type="button" id="btn-tab-bracket" onclick="switchTab('bracket')" class="tab-btn flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all">
     <span><?= $isGroup ? '📊' : '🌳' ?></span>
     <span><?= $isGroup ? 'Klasemen &amp; Jadwal' : 'Bagan Pertandingan' ?></span>
   </button>
 
-  <!-- Tab 3: Detail Tim -->
+  <?php if ($isGroup): ?>
+    <!-- Tab 3 (Khusus Sistem Grup / Futsal): Playoff & Final -->
+    <button type="button" id="btn-tab-playoff" onclick="switchTab('playoff')" class="tab-btn flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all">
+      <span>🏆</span>
+      <span>Playoff &amp; Final</span>
+    </button>
+  <?php endif; ?>
+
+  <!-- Tab Detail Tim -->
   <button type="button" id="btn-tab-teams" onclick="switchTab('teams')" class="tab-btn flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all">
     <span>👥</span>
     <span>Detail Tim</span>
     <span class="rounded-full bg-slate-800 px-2 py-0.2 text-[11px] font-bold text-slate-300"><?= $teamCount ?></span>
   </button>
 
-  <!-- Tab 4: Hasil Pertandingan -->
+  <!-- Tab Hasil Pertandingan -->
   <button type="button" id="btn-tab-hasil" onclick="switchTab('hasil')" class="tab-btn flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all">
     <span>📋</span>
     <span>Hasil Pertandingan</span>
@@ -143,12 +151,22 @@ $hasMultipleCategories = (count($categories) > 1);
         <span class="h-3 w-3 rounded-full bg-red-500 animate-ping"></span>
         Papan Skor Siaran Langsung (Live Broadcast)
       </h2>
-      <p class="text-xs sm:text-sm text-slate-400">Pembaruan otomatis tiap 1 detik langsung dari meja wasit arena pertandingan.</p>
+      <p class="text-xs sm:text-sm text-slate-400">Pembaruan otomatis real-time dari arena pertandingan.</p>
     </div>
     <div class="flex items-center gap-2">
+      <!-- Tombol Mode Layar Penuh (Full Screen) -->
+      <button type="button"
+              id="btn-toggle-fullscreen"
+              onclick="toggleFullScreenLive()"
+              class="inline-flex items-center gap-1.5 rounded-xl border border-blue-500/40 bg-blue-950/40 px-3 py-1.5 text-xs font-bold text-blue-300 hover:bg-blue-900/60 hover:text-white transition shadow-md active:scale-95"
+              title="Tampilkan Papan Skor Layar Penuh (Semua Lapangan)">
+        <span id="fs-icon" class="text-sm">⛶</span>
+        <span id="fs-label" class="hidden sm:inline">Layar Penuh</span>
+      </button>
+
       <span class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-500/40 bg-emerald-950/40 px-3 py-1.5 text-xs font-bold text-emerald-400">
         <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        Live Polling 1s
+        Live Score
       </span>
       <?php if ($liveCount > 0): ?>
         <span id="header-live-badge" class="rounded-xl border border-red-500/30 bg-red-950/40 px-3 py-1.5 text-xs font-semibold text-red-400">
@@ -158,53 +176,31 @@ $hasMultipleCategories = (count($categories) > 1);
     </div>
   </div>
 
+  <!-- Floating Exit Fullscreen Button (Hanya Muncul saat Mode Layar Penuh Aktif) -->
+  <div id="fullscreen-exit-bar" class="hidden fixed top-4 right-4 z-50">
+    <button type="button"
+            onclick="toggleFullScreenLive()"
+            class="flex items-center gap-2 rounded-xl bg-slate-900/95 border border-slate-700 px-4 py-2 text-xs font-bold text-slate-100 hover:bg-slate-800 hover:text-white shadow-2xl backdrop-blur-md transition-all active:scale-95">
+      <span>🗗</span>
+      <span>Keluar Layar Penuh</span>
+      <kbd class="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400 font-mono">ESC</kbd>
+    </button>
+  </div>
+
   <div id="live-content-container">
     <?php include dirname(__DIR__) . '/partials/live_matches_content.php'; ?>
   </div>
 </section>
 
 <!-- ========================================== -->
-<!-- KONTEN TAB 2: BRACKET / KLASEMEN           -->
+<!-- KONTEN TAB 2: BRACKET / KLASEMEN (FASE GRUP) -->
 <!-- ========================================== -->
 <section id="panel-bracket" class="tab-panel hidden mt-6">
   <?php if ($isGroup): ?>
-    <!-- Mode Sistem Grup (Liga) -->
-    <div class="mb-5">
-      <h2 class="text-xl sm:text-2xl font-black text-white">Klasemen &amp; Jadwal Fase Grup</h2>
-      <p class="text-xs sm:text-sm text-slate-400">Tabel klasemen diperbarui otomatis berdasarkan akumulasi hasil skor pertandingan.</p>
+    <!-- Konten Klasemen & Jadwal Khusus Pertandingan Grup (Real-Time Auto-Refresh) -->
+    <div id="group-standings-container">
+      <?php include dirname(__DIR__) . '/partials/group_standings_content.php'; ?>
     </div>
-
-    <?php if (empty($standings)): ?>
-      <div class="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-10 text-center text-slate-500">
-        Grup turnamen belum dibuat oleh panitia.
-      </div>
-    <?php else: ?>
-      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <?php foreach ($standings as $gid => $s): $g = $s['group']; $rows = $s['rows']; ?>
-          <div class="space-y-4">
-            <?php include dirname(__DIR__) . '/partials/standings_table.php'; ?>
-
-            <details class="group rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-md transition-all">
-              <summary class="flex cursor-pointer items-center justify-between font-bold text-sm text-slate-200 hover:text-white">
-                <span>📅 Jadwal &amp; Skor Pertandingan <?= e($g['name']) ?></span>
-                <span class="text-xs text-blue-400 group-open:rotate-180 transition-transform">▼</span>
-              </summary>
-              <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <?php foreach ($groupMatches[$gid] ?? [] as $m): $total = 0; ?>
-                  <div>
-                    <div class="mb-1 text-xs text-slate-400">Hari ke-<?= (int)$m['round'] ?></div>
-                    <?php include dirname(__DIR__) . '/partials/match_card.php'; ?>
-                  </div>
-                <?php endforeach; ?>
-                <?php if (empty($groupMatches[$gid])): ?>
-                  <p class="text-xs italic text-slate-500">Jadwal pertandingan grup ini belum dibuat.</p>
-                <?php endif; ?>
-              </div>
-            </details>
-          </div>
-        <?php endforeach; ?>
-      </div>
-    <?php endif; ?>
 
   <?php else: ?>
     <!-- Mode Sistem Gugur (Bracket Kiri-Kanan / Grand Slam Style) -->
@@ -247,6 +243,17 @@ $hasMultipleCategories = (count($categories) > 1);
 
   <?php endif; ?>
 </section>
+
+<?php if ($isGroup): ?>
+<!-- ========================================== -->
+<!-- KONTEN TAB KHUSUS: PLAYOFF & FINAL         -->
+<!-- ========================================== -->
+<section id="panel-playoff" class="tab-panel hidden mt-6">
+  <div id="playoffs-container">
+    <?php include dirname(__DIR__) . '/partials/playoff_content.php'; ?>
+  </div>
+</section>
+<?php endif; ?>
 
 <!-- ========================================== -->
 <!-- KONTEN TAB 3: DETAIL TIM                   -->
@@ -373,9 +380,9 @@ $hasMultipleCategories = (count($categories) > 1);
 <!-- JAVASCRIPT SISTEM TAB & SEAMLESS POLLING   -->
 <!-- ========================================== -->
 <script>
-// 1. Switch Tab Utama (Live, Bracket, Teams, Hasil)
+// 1. Switch Tab Utama (Live, Bracket, Playoff, Teams, Hasil)
 function switchTab(tabId) {
-  const tabs = ['live', 'bracket', 'teams', 'hasil'];
+  const tabs = ['live', 'bracket', 'playoff', 'teams', 'hasil'];
   if (!tabs.includes(tabId)) {
     tabId = 'live';
   }
@@ -393,6 +400,11 @@ function switchTab(tabId) {
   const targetPanel = document.getElementById('panel-' + tabId);
   if (targetPanel) {
     targetPanel.classList.remove('hidden');
+  }
+
+  // Jika tab bracket dibuka, render ulang garis penghubung SVG agar presisi
+  if (tabId === 'bracket' && typeof window.drawAllBracketLines === 'function') {
+    requestAnimationFrame(() => window.drawAllBracketLines());
   }
 
   // Berikan highlight pada tombol aktif
@@ -426,6 +438,11 @@ function switchBracketCategory(catKey) {
     targetBtn.classList.add('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-600/30');
     targetBtn.classList.remove('text-slate-400', 'hover:text-white');
   }
+
+  // Render ulang garis bracket untuk kategori yang baru ditampilkan
+  if (typeof window.drawAllBracketLines === 'function') {
+    requestAnimationFrame(() => window.drawAllBracketLines());
+  }
 }
 
 // 3. Filter Kategori pada Tab Detail Tim
@@ -455,7 +472,9 @@ function filterTeamCategory(catKey) {
 // ==========================================
 let isPolling = false;
 let lastStatusHash = null;
+let lastLiveScoreHash = null;
 let lastBracketHash = null;
+let lastStandingsHash = null;
 
 async function pollLiveScores() {
   if (isPolling) return;
@@ -476,6 +495,8 @@ async function pollLiveScores() {
       const liveCont = document.getElementById('live-content-container');
       if (liveCont && data.live_html !== undefined) {
         liveCont.innerHTML = data.live_html;
+        tickPublicFutsalClocks();
+        updateFullscreenUI();
       }
 
       const finCont = document.getElementById('finished-content-container');
@@ -484,6 +505,9 @@ async function pollLiveScores() {
       }
     }
     lastStatusHash = data.status_hash;
+
+    // 2b. Simpan hash live score terkini (skor & highlights diupdate secara granular tanpa re-render kontainer)
+    lastLiveScoreHash = data.live_score_hash;
 
     // 3. Sinkronisasi Bagan Bracket jika status atau pertandingan berubah
     if (data.brackets_html && lastBracketHash !== null && lastBracketHash !== data.bracket_hash) {
@@ -501,20 +525,44 @@ async function pollLiveScores() {
           }
         }
       }
+      if (typeof window.drawAllBracketLines === 'function') {
+        requestAnimationFrame(() => window.drawAllBracketLines());
+      }
     }
     lastBracketHash = data.bracket_hash;
+
+    // 3b. Sinkronisasi Klasemen & Jadwal Grup serta Tab Playoff secara Real-Time
+    if (data.standings_html && lastStandingsHash !== null && lastStandingsHash !== data.standings_hash) {
+      const standingsCont = document.getElementById('group-standings-container');
+      if (standingsCont) {
+        standingsCont.innerHTML = data.standings_html;
+      }
+      const playoffsCont = document.getElementById('playoffs-container');
+      if (playoffsCont && data.playoffs_html) {
+        playoffsCont.innerHTML = data.playoffs_html;
+      }
+    }
+    lastStandingsHash = data.standings_hash;
 
     // 4. Update Nilai Skor & Active Set dengan micro-flash jika ada pertandingan live
     if (data.matches && data.matches.length > 0) {
       data.matches.forEach(m => {
-        // Fallback jika elemen belum ada di DOM
-        if (!document.getElementById(`live-set1-a-${m.id}`)) {
+        // Fallback jika card pertandingan belum ada di DOM (misal baru mulai live)
+        if (!document.getElementById(`live-card-${m.id}`)) {
           const liveCont = document.getElementById('live-content-container');
           if (liveCont && data.live_html) {
             liveCont.innerHTML = data.live_html;
+            tickPublicFutsalClocks();
+            updateFullscreenUI();
           }
         }
         updateMatchInDOM(m);
+
+        // Khusus Futsal: sinkronisasi timeline highlights secara granular tanpa re-render kontainer (zero flicker)
+        if (m.sport_type === 'futsal') {
+          const mHl = (data.highlights && data.highlights[m.id]) ? data.highlights[m.id] : [];
+          syncHighlightsInDOM(m.id, mHl, m.team1_id);
+        }
       });
     }
 
@@ -568,6 +616,7 @@ function updateLiveBadges(liveCount, finishedCount) {
 }
 
 function updateMatchInDOM(m) {
+  const isFutsal = (m.sport_type === 'futsal');
   const isRubber = (m.scoring_system === 'rubber_set');
   const currSet = parseInt(m.current_set || 0);
   const isSetFin = Boolean(parseInt(m.is_set_finished || 0));
@@ -577,13 +626,13 @@ function updateMatchInDOM(m) {
   updateValueWithFlash(`live-set1-b-${m.id}`, m.set1_b || 0);
 
   // 2. Update Nilai Set 2 Tim A & B (dengan carry-over jika Poin Lanjut)
-  const s2a = (!isRubber && parseInt(m.set2_a) === 0 && parseInt(m.set1_a) > 0) ? m.set1_a : (m.set2_a || 0);
-  const s2b = (!isRubber && parseInt(m.set2_b) === 0 && parseInt(m.set1_b) > 0) ? m.set1_b : (m.set2_b || 0);
+  const s2a = (!isFutsal && !isRubber && parseInt(m.set2_a) === 0 && parseInt(m.set1_a) > 0) ? m.set1_a : (m.set2_a || 0);
+  const s2b = (!isFutsal && !isRubber && parseInt(m.set2_b) === 0 && parseInt(m.set1_b) > 0) ? m.set1_b : (m.set2_b || 0);
   updateValueWithFlash(`live-set2-a-${m.id}`, s2a);
   updateValueWithFlash(`live-set2-b-${m.id}`, s2b);
 
   // 3. Update Nilai Set 3 Tim A & B (jika Rubber)
-  if (isRubber) {
+  if (!isFutsal && isRubber) {
     updateValueWithFlash(`live-set3-a-${m.id}`, m.set3_a || 0);
     updateValueWithFlash(`live-set3-b-${m.id}`, m.set3_b || 0);
   }
@@ -592,7 +641,60 @@ function updateMatchInDOM(m) {
   updateValueWithFlash(`live-score1-${m.id}`, m.score1);
   updateValueWithFlash(`live-score2-${m.id}`, m.score2);
 
-  // 5. Update Active Set Highlight (Pindahkan ukuran font besar & highlight ke set yang sedang aktif)
+  const isHalfTime = isFutsal && (currSet === 1 && isSetFin);
+  const isFullTime = isFutsal && (currSet === 2 && isSetFin);
+
+  // 5. Update Timer Futsal Clock data attributes & controls
+  if (isFutsal) {
+    const clock = document.getElementById(`public-clock-${m.id}`);
+    if (clock) {
+      if (m.futsal_half_duration !== undefined) clock.dataset.halfDuration = m.futsal_half_duration;
+      if (m.futsal_elapsed_seconds !== undefined) clock.dataset.elapsed = m.futsal_elapsed_seconds;
+      if (m.futsal_timer_status !== undefined) clock.dataset.status = m.futsal_timer_status;
+      if (m.futsal_timer_updated_at !== undefined) clock.dataset.updatedAt = m.futsal_timer_updated_at;
+
+      const halfDur = parseInt(m.futsal_half_duration || clock.dataset.halfDuration || 5, 10);
+      const maxSec = halfDur * 120;
+
+      // Jika match full time: waktu otomatis menjadi batas waktu maksimal yang ditentukan admin
+      if (isFullTime) {
+        clock.dataset.elapsed = maxSec;
+        clock.dataset.status = 'stopped';
+        clock.textContent = String(Math.floor(maxSec / 60)).padStart(2, '0') + ':' + String(maxSec % 60).padStart(2, '0');
+      } else if (isHalfTime) {
+        const htSec = halfDur * 60;
+        clock.dataset.elapsed = htSec;
+        clock.dataset.status = 'paused';
+        clock.textContent = String(Math.floor(htSec / 60)).padStart(2, '0') + ':' + String(htSec % 60).padStart(2, '0');
+      } else if (m.futsal_timer_status !== 'running') {
+        const sec = parseInt(m.futsal_elapsed_seconds || 0, 10);
+        clock.textContent = String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0');
+      }
+    }
+    const babakEl = document.getElementById(`public-babak-${m.id}`);
+    const babakTextEl = document.getElementById(`public-babak-text-${m.id}`);
+    if (babakTextEl) {
+      babakTextEl.textContent = isHalfTime ? 'HALF TIME' : (isFullTime ? 'FULL TIME' : ((currSet === 2) ? 'BABAK 2' : 'BABAK 1'));
+    }
+    if (babakEl) {
+      babakEl.className = 'inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-[11px] sm:text-xs font-black uppercase tracking-wider ' +
+        (isHalfTime ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300 shadow-sm shadow-amber-500/20' : (isFullTime ? 'bg-cyan-500/20 border border-cyan-500/50 text-cyan-300 shadow-sm shadow-cyan-500/20' : 'bg-slate-800/90 border border-slate-700 text-emerald-400 shadow-sm'));
+    }
+    const dotEl = document.getElementById(`public-dot-${m.id}`);
+    if (dotEl) {
+      if (!isHalfTime && !isFullTime && m.futsal_timer_status === 'running') {
+        dotEl.className = 'h-2 w-2 rounded-full bg-emerald-400 animate-ping';
+      } else if (isHalfTime) {
+        dotEl.className = 'h-2 w-2 rounded-full bg-amber-400';
+      } else if (isFullTime) {
+        dotEl.className = 'h-2 w-2 rounded-full bg-cyan-400';
+      } else {
+        dotEl.className = 'h-2 w-2 rounded-full bg-emerald-400';
+      }
+    }
+  }
+
+  // 6. Update Active Set Highlight
   for (let s = 1; s <= (isRubber ? 3 : 2); s++) {
     const elA = document.getElementById(`live-set${s}-a-${m.id}`);
     const elB = document.getElementById(`live-set${s}-b-${m.id}`);
@@ -606,17 +708,26 @@ function updateMatchInDOM(m) {
     if (elB) elB.className = 'inline-block transition-all ' + (isActive ? activeClass : inactiveClass);
   }
 
-  // 6. Update Chyron Header
+  // 7. Update Chyron Header
   const chyronEl = document.getElementById(`live-chyron-${m.id}`);
   if (chyronEl) {
-    let html = `
-      <span class="rounded-xl border border-blue-500/30 bg-blue-950/40 px-2.5 py-1 text-[11px] font-bold text-blue-300 hidden sm:inline-block">
-        ${isRubber ? 'Rubber Set' : 'Poin Lanjut'}
-      </span>
-    `;
+    let html = '';
+    if (!isFutsal) {
+      html += `
+        <span class="rounded-xl border border-blue-500/30 bg-blue-950/40 px-2.5 py-1 text-[11px] font-bold text-blue-300 hidden sm:inline-block">
+          ${isRubber ? 'Rubber Set' : 'Poin Lanjut'}
+        </span>
+      `;
+    }
 
-    if (currSet > 0 && !isSetFin) {
-      const label = (currSet === 3) ? 'SET 3 (RUBBER GAME) BERLANGSUNG' : `SET ${currSet} BERLANGSUNG`;
+    if (isHalfTime) {
+      html += `
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-500/60 bg-amber-500/20 px-3.5 py-1 text-xs font-black text-amber-300 shadow-md shadow-amber-500/20">
+          ⏸️ HALF TIME (ISTIRAHAT)
+        </span>
+      `;
+    } else if (currSet > 0 && !isSetFin) {
+      const label = isFutsal ? `BABAK ${currSet} BERLANGSUNG` : ((currSet === 3) ? 'SET 3 (RUBBER GAME) BERLANGSUNG' : `SET ${currSet} BERLANGSUNG`);
       html += `
         <span class="inline-flex items-center gap-1.5 rounded-full border border-red-500/60 bg-red-500/20 px-3.5 py-1 text-xs font-black text-red-300 animate-pulse shadow-md shadow-red-500/20">
           <span class="h-2 w-2 rounded-full bg-red-400 animate-ping"></span>
@@ -626,7 +737,7 @@ function updateMatchInDOM(m) {
     } else if (currSet > 0 && isSetFin) {
       html += `
         <span class="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/60 bg-cyan-500/20 px-3.5 py-1 text-xs font-black text-cyan-300">
-          ⏸️ SET ${currSet} SELESAI
+          ✓ ${isFutsal ? (currSet === 2 ? 'FULL TIME' : `BABAK ${currSet} SELESAI`) : `SET ${currSet} SELESAI`}
         </span>
       `;
     } else {
@@ -657,8 +768,288 @@ function updateValueWithFlash(elementId, newValue) {
   }
 }
 
-// Jalankan polling setiap 1000ms (1 detik)
+/**
+ * Konfigurasi badge event highlight futsal Football Manager style
+ */
+const HL_EVENTS = {
+  'goal':               { label: 'Gol',                 emoji: '⚽',  badge: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' },
+  'yellow_card':        { label: 'Kartu Kuning',        emoji: '🟨',  badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
+  'double_yellow_card': { label: 'Kartu Kuning Kedua',  emoji: '🟨🟥', badge: 'bg-orange-500/20 text-orange-300 border-orange-500/40' },
+  'red_card':           { label: 'Kartu Merah',         emoji: '🟥',  badge: 'bg-rose-500/20 text-rose-400 border-rose-500/40' },
+  'substitution':       { label: 'Pertukaran Pemain',   emoji: '🔄',  badge: 'bg-sky-500/20 text-sky-400 border-sky-500/40' },
+  'half_time':          { label: 'Half Time',           emoji: '⏸️',  badge: 'bg-amber-500/20 text-amber-300 border-amber-500/50' },
+  'full_time':          { label: 'Full Time',           emoji: '🏁',  badge: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50' }
+};
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function createHighlightItemElement(h, team1Id) {
+  if (h.event_type === 'half_time' || h.event_type === 'full_time') {
+    const isHt = (h.event_type === 'half_time');
+    const div = document.createElement('div');
+    div.id = `fm-event-item-${h.id}`;
+    div.dataset.hlId = String(h.id);
+    div.className = 'flex items-center justify-center my-3 transition-all duration-300 fm-event-animate';
+    div.innerHTML = `
+      <div class="inline-flex items-center gap-2 rounded-full border ${isHt ? 'border-amber-500/60 bg-amber-950/80 text-amber-300 shadow-amber-500/20' : 'border-cyan-500/60 bg-cyan-950/80 text-cyan-300 shadow-cyan-500/20'} px-4 py-1 text-xs font-black shadow-lg">
+        <span class="text-sm">${isHt ? '⏸️' : '🏁'}</span>
+        <span>${isHt ? 'HALF TIME' : 'FULL TIME'}</span>
+        <span class="font-mono text-[11px] opacity-80">(${escapeHtml(h.minute || '1')}')</span>
+      </div>
+    `;
+    return div;
+  }
+
+  const isTeamA = (parseInt(h.team_id, 10) === parseInt(team1Id, 10));
+  const evt = HL_EVENTS[h.event_type] || HL_EVENTS['goal'];
+
+  let playerContent = '';
+  if (h.event_type === 'substitution' && h.player_out && h.player_in) {
+    playerContent = `
+      <div class="text-slate-300 text-[11px] font-semibold leading-tight">
+        <span class="text-rose-300 font-bold">${escapeHtml(h.player_out)}</span> ➔ <span class="text-emerald-300 font-bold">${escapeHtml(h.player_in)}</span>
+      </div>
+    `;
+  } else {
+    playerContent = `
+      <div class="font-black text-white truncate max-w-[130px] sm:max-w-[200px] leading-tight">
+        ${escapeHtml(h.player_name || '')}
+      </div>
+    `;
+  }
+
+  const badgeBody = `
+    <div class="min-w-0">
+      ${playerContent}
+      <div class="text-[9px] uppercase tracking-wider opacity-80 font-bold mt-0.5">
+        ${escapeHtml(evt.label)}
+      </div>
+    </div>
+  `;
+
+  const leftCol = isTeamA
+    ? `<div class="justify-self-end text-right min-w-0 max-w-full">
+        <div class="inline-flex items-center gap-2 rounded-xl border ${evt.badge} px-3 py-1.5 text-xs shadow-md shadow-black/40 backdrop-blur-sm transition hover:scale-[1.02]">
+          ${badgeBody}
+          <span class="text-base shrink-0">${evt.emoji}</span>
+        </div>
+      </div>`
+    : `<div></div>`;
+
+  const rightCol = !isTeamA
+    ? `<div class="justify-self-start text-left min-w-0 max-w-full">
+        <div class="inline-flex items-center gap-2 rounded-xl border ${evt.badge} px-3 py-1.5 text-xs shadow-md shadow-black/40 backdrop-blur-sm transition hover:scale-[1.02]">
+          <span class="text-base shrink-0">${evt.emoji}</span>
+          ${badgeBody}
+        </div>
+      </div>`
+    : `<div></div>`;
+
+  const div = document.createElement('div');
+  div.id = `fm-event-item-${h.id}`;
+  div.dataset.hlId = String(h.id);
+  div.className = 'grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4 transition-all duration-300 fm-event-animate';
+  div.innerHTML = `
+    ${leftCol}
+    <div class="flex flex-col items-center justify-center shrink-0">
+      <span class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 border-2 border-emerald-500/70 font-mono text-[10px] font-black text-emerald-300 shadow-lg shadow-black/90 ring-2 ring-emerald-500/20">
+        ${escapeHtml(h.minute || '1')}'
+      </span>
+    </div>
+    ${rightCol}
+  `;
+  return div;
+}
+
+/**
+ * Sinkronisasi daftar highlight di DOM secara granular tanpa kedipan / re-render
+ */
+function syncHighlightsInDOM(mid, hlList, team1Id) {
+  const listEl = document.getElementById(`live-timeline-list-${mid}`);
+  const emptyEl = document.getElementById(`live-timeline-empty-${mid}`);
+  if (!listEl) return;
+
+  const items = Array.isArray(hlList) ? hlList : [];
+  if (emptyEl) {
+    if (items.length === 0) {
+      emptyEl.classList.remove('hidden');
+    } else {
+      emptyEl.classList.add('hidden');
+    }
+  }
+
+  const t1Id = parseInt(team1Id || listEl.dataset.team1Id || 0, 10);
+  const incomingMap = new Map();
+  items.forEach(h => incomingMap.set(String(h.id), h));
+
+  // 1. Hapus elemen DOM yang sudah tidak ada di data incoming (misal di-cancel wasit)
+  const existingDomItems = Array.from(listEl.querySelectorAll('[data-hl-id]'));
+  existingDomItems.forEach(el => {
+    const hid = el.dataset.hlId;
+    if (!incomingMap.has(hid)) {
+      el.remove();
+    }
+  });
+
+  // 2. Sinkronisasi urutan dan tambahkan item baru tanpa menyentuh elemen lama (zero flicker)
+  items.forEach((h, idx) => {
+    const hid = String(h.id);
+    let el = document.getElementById(`fm-event-item-${hid}`);
+    if (!el) {
+      // Elemen baru masuk dengan animasi halus
+      el = createHighlightItemElement(h, t1Id);
+    }
+    const currentChild = listEl.children[idx];
+    if (currentChild !== el) {
+      listEl.insertBefore(el, currentChild || null);
+    }
+  });
+}
+
+
+/**
+ * Ticker real-time untuk timer futsal publik (berdetik setiap detik secara presisi)
+ */
+function tickPublicFutsalClocks() {
+  document.querySelectorAll('.public-futsal-clock').forEach(clock => {
+    const status = clock.dataset.status || 'stopped';
+    const elapsed = parseInt(clock.dataset.elapsed || '0', 10);
+    const halfDur = parseInt(clock.dataset.halfDuration || '5', 10);
+    const maxSec = halfDur * 120;
+    let currentSec = elapsed;
+
+    if (status === 'running') {
+      const updatedAtStr = clock.dataset.updatedAt;
+      if (updatedAtStr) {
+        const updatedTime = new Date(updatedAtStr.replace(' ', 'T')).getTime();
+        const now = Date.now();
+        const diff = Math.floor((now - updatedTime) / 1000);
+        if (!isNaN(diff) && diff >= 0) {
+          currentSec = Math.min(maxSec, elapsed + diff);
+        }
+      }
+    }
+
+    const mins = Math.floor(currentSec / 60);
+    const secs = currentSec % 60;
+    clock.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+  });
+}
+
+// Jalankan polling dan ticker clock
 setInterval(pollLiveScores, 1000);
+setInterval(tickPublicFutsalClocks, 1000);
+setTimeout(tickPublicFutsalClocks, 100);
+
+/**
+ * Fitur Fullscreen Live Score (Mendukung Semua Cabor: Futsal, Badminton, Tenis Meja)
+ */
+function toggleFullScreenLive() {
+  const panel = document.getElementById('panel-live');
+  if (!panel) return;
+  const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+  if (!isFs) {
+    if (panel.requestFullscreen) {
+      panel.requestFullscreen();
+    } else if (panel.webkitRequestFullscreen) {
+      panel.webkitRequestFullscreen();
+    } else if (panel.msRequestFullscreen) {
+      panel.msRequestFullscreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+  }
+}
+
+function toggleFullScreenCard(cardId) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  const currentFs = document.fullscreenElement || document.webkitFullscreenElement;
+  if (currentFs === card) {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+  } else {
+    if (card.requestFullscreen) {
+      card.requestFullscreen();
+    } else if (card.webkitRequestFullscreen) {
+      card.webkitRequestFullscreen();
+    } else if (card.msRequestFullscreen) {
+      card.msRequestFullscreen();
+    }
+  }
+}
+
+function updateFullscreenUI() {
+  const currentFs = document.fullscreenElement || document.webkitFullscreenElement;
+  const isFs = Boolean(currentFs);
+  const fsIcon = document.getElementById('fs-icon');
+  const fsLabel = document.getElementById('fs-label');
+  const exitBar = document.getElementById('fullscreen-exit-bar');
+
+  if (exitBar) {
+    if (isFs && currentFs && currentFs.id === 'panel-live') {
+      exitBar.classList.remove('hidden');
+    } else {
+      exitBar.classList.add('hidden');
+    }
+  }
+
+  if (fsIcon && fsLabel) {
+    if (isFs && currentFs && currentFs.id === 'panel-live') {
+      fsIcon.textContent = '🗗';
+      fsLabel.textContent = 'Keluar Layar Penuh';
+    } else {
+      fsIcon.textContent = '⛶';
+      fsLabel.textContent = 'Layar Penuh';
+    }
+  }
+
+  document.querySelectorAll('.card-fs-btn').forEach(btn => {
+    const targetId = btn.dataset.cardId;
+    if (isFs && currentFs && currentFs.id === targetId) {
+      btn.innerHTML = '<span class="text-xs">🗗</span>';
+      btn.title = 'Keluar Layar Penuh (ESC)';
+      btn.classList.add('bg-blue-600', 'text-white', 'border-blue-400');
+      btn.classList.remove('bg-slate-800/60', 'text-slate-300');
+    } else {
+      btn.innerHTML = '<span class="text-xs">⛶</span>';
+      btn.title = 'Layar Penuh Pertandingan Ini';
+      btn.classList.remove('bg-blue-600', 'text-white', 'border-blue-400');
+      btn.classList.add('bg-slate-800/60', 'text-slate-300');
+    }
+  });
+}
+
+document.addEventListener('fullscreenchange', updateFullscreenUI);
+document.addEventListener('webkitfullscreenchange', updateFullscreenUI);
+
+// Shortcut keyboard 'F' untuk toggle fullscreen saat di tab Live
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    const activePanel = document.querySelector('.tab-panel:not(.hidden)');
+    const isLiveActive = activePanel && activePanel.id === 'panel-live';
+    const tag = (document.activeElement && document.activeElement.tagName) ? document.activeElement.tagName.toLowerCase() : '';
+    if (isLiveActive && tag !== 'input' && tag !== 'textarea' && tag !== 'select') {
+      e.preventDefault();
+      toggleFullScreenLive();
+    }
+  }
+});
 
 // Inisialisasi saat DOM selesai dimuat
 document.addEventListener('DOMContentLoaded', () => {
@@ -670,7 +1061,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let hash = window.location.hash.replace('#', '');
   if (hash === 'klasemen') hash = 'bracket';
 
-  if (['live', 'bracket', 'teams', 'hasil'].includes(hash)) {
+  if (['live', 'bracket', 'playoff', 'teams', 'hasil'].includes(hash)) {
     switchTab(hash);
   } else {
     <?php if ($liveCount > 0): ?>
