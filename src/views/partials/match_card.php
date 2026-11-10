@@ -101,7 +101,14 @@ if ($isFutsal) {
   <!-- Header: Nomor, Lapangan, Keterangan Sistem Set, Status -->
   <div class="mhead flex items-center justify-between gap-2 px-3.5 py-2 bg-slate-950/80 border-b border-slate-800 text-xs">
     <div class="flex items-center gap-1.5 min-w-0 flex-1">
-      <span class="font-bold text-slate-300 shrink-0">#<?= (int)$m['round'] ?>-<?= (int)$m['position'] ?><?= !empty($m['court']) ? ' · ' . e($m['court']) : '' ?></span>
+      <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-gradient-to-r from-blue-600/25 to-indigo-600/25 border border-blue-500/35 text-blue-400 font-extrabold text-[11px] shrink-0">
+        #<?= (int)$m['round'] ?>-<?= (int)$m['position'] ?>
+      </span>
+      <?php if (!empty($m['court'])): ?>
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-600/15 border border-cyan-500/30 text-cyan-400 font-semibold text-[10px] shrink-0">
+          📍 <?= e($m['court']) ?>
+        </span>
+      <?php endif; ?>
       <?php if ($isFutsal): ?>
         <?php $isPlayoffStage = ($m['stage'] === 'knockout' || in_array($m['bracket_side'] ?? '', ['final', 'third_place'], true)); ?>
         <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold border shrink-0 leading-none <?= $isPlayoffStage ? 'bg-amber-950/50 text-amber-300 border-amber-500/40' : 'bg-emerald-950/50 text-emerald-300 border-emerald-500/40' ?>" title="<?= $isPlayoffStage ? 'Tipe Playoff' : 'Tipe Fase Grup' ?>">
@@ -154,7 +161,8 @@ if ($isFutsal) {
     <div class="min-w-0 flex-1">
       <div class="text-xs font-bold leading-snug break-words <?= $w && $w == $m['team1_id'] ? '!text-emerald-300' : ($hasT1 ? 'text-slate-100' : 'text-slate-400') ?>" title="<?= e($hasT1 ? $m['team1_name'] : $p1) ?>">
         <?php if ($hasT1): ?>
-          <?= e($m['team1_name']) ?>
+          <span><?= e($m['team1_name']) ?></span>
+          <?php if ($w && $w == $m['team1_id']): ?><span class="inline-block ml-1 text-xs" title="Pemenang Pertandingan">👑</span><?php endif; ?>
         <?php else: ?>
           <span class="inline-flex items-center gap-1.5 text-slate-400 font-semibold italic text-[11px] leading-tight">
             <span class="opacity-60 not-italic text-[10px]">⏱</span>
@@ -208,7 +216,8 @@ if ($isFutsal) {
     <div class="min-w-0 flex-1">
       <div class="text-xs font-bold leading-snug break-words <?= $w && $w == $m['team2_id'] ? '!text-emerald-300' : ($hasT2 ? 'text-slate-100' : 'text-slate-400') ?>" title="<?= e($hasT2 ? $m['team2_name'] : $p2) ?>">
         <?php if ($hasT2): ?>
-          <?= e($m['team2_name']) ?>
+          <span><?= e($m['team2_name']) ?></span>
+          <?php if ($w && $w == $m['team2_id']): ?><span class="inline-block ml-1 text-xs" title="Pemenang Pertandingan">👑</span><?php endif; ?>
         <?php else: ?>
           <span class="inline-flex items-center gap-1.5 text-slate-400 font-semibold italic text-[11px] leading-tight">
             <span class="opacity-60 not-italic text-[10px]">⏱</span>
@@ -251,6 +260,34 @@ if ($isFutsal) {
       <?php endif; ?>
     </div>
   </div>
+
+  <!-- Perangkat Wasit Pertandingan (Wasit Utama 1 orang, Wasit Garis 2 orang) -->
+  <?php
+    $hasRefMain = !empty($m['referee_main']);
+    $hasRefLine1 = !empty($m['referee_line1']);
+    $hasRefLine2 = !empty($m['referee_line2']);
+    $hasReferees = ($hasRefMain || $hasRefLine1 || $hasRefLine2);
+  ?>
+  <?php if ($hasReferees): ?>
+    <div class="mreferees flex flex-wrap items-center justify-between gap-x-2 gap-y-1 px-3.5 py-1.5 bg-slate-950/85 border-t border-slate-800/80 text-[10.5px]">
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 min-w-0 flex-1">
+        <?php if ($hasRefMain): ?>
+          <span class="inline-flex items-center gap-1 font-medium text-slate-300 truncate max-w-full" title="Wasit Utama: <?= e($m['referee_main']) ?>">
+            <span class="text-amber-400 font-bold shrink-0">👨‍⚖️ Wasit:</span>
+            <span class="font-semibold text-slate-200 truncate"><?= e($m['referee_main']) ?></span>
+          </span>
+        <?php endif; ?>
+        <?php if ($hasRefLine1 || $hasRefLine2): ?>
+          <span class="inline-flex items-center gap-1 font-medium text-slate-400 truncate max-w-full" title="Wasit Garis: <?= e(implode(', ', array_filter([$m['referee_line1'] ?? '', $m['referee_line2'] ?? '']))) ?>">
+            <span class="text-blue-400 font-semibold shrink-0">🚩 Garis:</span>
+            <span class="text-slate-300 truncate">
+              <?= e(implode(', ', array_filter([$m['referee_line1'] ?? '', $m['referee_line2'] ?? '']))) ?>
+            </span>
+          </span>
+        <?php endif; ?>
+      </div>
+    </div>
+  <?php endif; ?>
 
   <!-- Footer: Hari, Tanggal, Jam, dan Status Pemenang jika Selesai -->
   <div class="mfoot flex items-center justify-between gap-1.5 px-3.5 py-2 bg-slate-950/60 border-t border-slate-800/80 text-[11px] text-slate-400">

@@ -86,6 +86,32 @@ $sys = $match['scoring_system'] ?? 'rubber_set';
     <label>Lapangan<input name="court" maxlength="30" placeholder="Court 1" value="<?= e($match['court']) ?>"></label>
   </div>
 
+  <!-- Perangkat Wasit Pertandingan -->
+  <div class="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-3">
+    <div class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center justify-between">
+      <span>👨‍⚖️ Perangkat Wasit Pertandingan</span>
+      <span class="text-[10px] text-slate-400 font-normal">Wasit Utama 1 orang &amp; Wasit Garis 2 orang</span>
+    </div>
+    <div>
+      <label class="text-xs text-slate-300 mb-1 block">Wasit Utama (1 Orang)
+        <input type="text" name="referee_main" value="<?= e($match['referee_main'] ?? '') ?>" placeholder="Nama Wasit Utama..." maxlength="100" list="refereesListDatalist">
+      </label>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <label class="text-xs text-slate-300">Wasit Garis 1
+        <input type="text" name="referee_line1" value="<?= e($match['referee_line1'] ?? '') ?>" placeholder="Nama Wasit Garis 1..." maxlength="100" list="refereesListDatalist">
+      </label>
+      <label class="text-xs text-slate-300">Wasit Garis 2
+        <input type="text" name="referee_line2" value="<?= e($match['referee_line2'] ?? '') ?>" placeholder="Nama Wasit Garis 2..." maxlength="100" list="refereesListDatalist">
+      </label>
+    </div>
+  </div>
+  <datalist id="refereesListDatalist">
+    <?php foreach (($refereesList ?? []) as $rName): ?>
+      <option value="<?= e($rName) ?>"></option>
+    <?php endforeach; ?>
+  </datalist>
+
   <label>Status Pertandingan
     <select name="status">
       <?php foreach (['upcoming', 'live', 'finished'] as $s): ?><option value="<?= $s ?>" <?= $sel($s, $match['status']) ?>><?= e(status_label($s)) ?></option><?php endforeach; ?>

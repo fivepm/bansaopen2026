@@ -16,6 +16,23 @@ try {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  // Inisialisasi tema instan sebelum render halaman (mencegah kedipan / flicker)
+  (function() {
+    try {
+      const savedTheme = localStorage.getItem('bansa_theme');
+      if (savedTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+      } else {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      }
+    } catch (e) {
+      document.documentElement.classList.add('dark');
+    }
+  })();
+</script>
 <meta name="csrf" content="<?= e($csrf) ?>">
 <title><?= e($title ?? '') ?> · Panel Panitia</title>
 <link rel="icon" type="image/png" href="<?= e(favicon_url()) ?>">
@@ -25,7 +42,7 @@ try {
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <?php require __DIR__ . '/../partials/tailwind.php'; ?>
 </head>
-<body class="min-h-screen bg-[#090d16] text-slate-100 antialiased flex flex-col font-['Plus_Jakarta_Sans',system-ui,sans-serif] selection:bg-blue-600 selection:text-white">
+<body class="min-h-screen bg-blue-100 dark:bg-[#090d16] text-slate-100 antialiased flex flex-col font-['Plus_Jakarta_Sans',system-ui,sans-serif] selection:bg-blue-600 selection:text-white">
 <header class="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md">
   <div class="w-full flex flex-wrap items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
     <a class="flex items-center gap-2.5 text-base sm:text-lg font-black text-white" href="<?= url($isOperator ? 'admin/live-panel' : 'admin') ?>">
@@ -35,9 +52,21 @@ try {
       </span>
     </a>
 
-    <button type="button" class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700/80 text-slate-300 hover:border-slate-600 hover:text-white md:hidden" aria-label="Menu" onclick="document.getElementById('admin-menu').classList.toggle('hidden')">
-      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-    </button>
+    <!-- Area Kanan Header Mobile: Tombol Tema & Tombol Menu Mobile -->
+    <div class="flex items-center gap-2 md:hidden">
+      <button type="button" 
+              class="theme-toggle-btn flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/60 text-slate-300 hover:border-slate-500 hover:text-white transition shadow-sm active:scale-95" 
+              title="Ganti Tema (Gelap / Terang)" 
+              aria-label="Toggle Dark/Light Mode"
+              onclick="toggleTheme()">
+        <span class="theme-icon-dark hidden text-base leading-none">🌙</span>
+        <span class="theme-icon-light text-base leading-none">☀️</span>
+      </button>
+
+      <button type="button" class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700/80 text-slate-300 hover:border-slate-600 hover:text-white md:hidden" aria-label="Menu" onclick="document.getElementById('admin-menu').classList.toggle('hidden')">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+      </button>
+    </div>
 
     <nav id="admin-menu" class="hidden w-full flex-col gap-1.5 pt-3 md:flex md:w-auto md:flex-row md:items-center md:gap-2 md:pt-0">
       <?php if ($isSuperAdmin): ?>
@@ -128,6 +157,18 @@ try {
         <?= csrf_field() ?>
         <button class="btn small danger !py-1 !px-2.5 text-xs">Keluar</button>
       </form>
+
+      <!-- Tombol Tema Desktop -->
+      <div class="hidden md:flex items-center pl-2 ml-1 border-l border-slate-800/80">
+        <button type="button" 
+                class="theme-toggle-btn flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/60 text-slate-300 hover:border-slate-500 hover:text-white transition shadow-sm active:scale-95" 
+                title="Ganti Tema (Gelap / Terang)" 
+                aria-label="Toggle Dark/Light Mode"
+                onclick="toggleTheme()">
+          <span class="theme-icon-dark hidden text-base leading-none">🌙</span>
+          <span class="theme-icon-light text-base leading-none">☀️</span>
+        </button>
+      </div>
     </nav>
   </div>
 </header>
@@ -163,6 +204,39 @@ document.querySelectorAll('.admin-dropdown').forEach(dd => {
     }
   });
 });
+
+// SISTEM TOGGLE TEMA (GELAP / TERANG) ADMIN
+function toggleTheme() {
+  const isDark = document.documentElement.classList.contains('dark');
+  const targetTheme = isDark ? 'light' : 'dark';
+  
+  if (targetTheme === 'light') {
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
+    try { localStorage.setItem('bansa_theme', 'light'); } catch(e){}
+  } else {
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+    try { localStorage.setItem('bansa_theme', 'dark'); } catch(e){}
+  }
+  updateThemeIcons();
+}
+
+function updateThemeIcons() {
+  const isLight = document.documentElement.classList.contains('light');
+  document.querySelectorAll('.theme-icon-dark').forEach(el => {
+    el.classList.toggle('hidden', !isLight);
+  });
+  document.querySelectorAll('.theme-icon-light').forEach(el => {
+    el.classList.toggle('hidden', isLight);
+  });
+  document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+    btn.setAttribute('title', isLight ? 'Beralih ke Mode Gelap' : 'Beralih ke Mode Terang');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', updateThemeIcons);
+updateThemeIcons();
 </script>
 </body>
 </html>

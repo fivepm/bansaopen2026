@@ -45,6 +45,9 @@ $hasTeams = (!empty($m['team1_id']) && !empty($m['team2_id']));
             data-scoring-system="<?= e($m['scoring_system'] ?? 'rubber_set') ?>"
             data-scheduled-at="<?= e($m['scheduled_at'] ?? '') ?>"
             data-court="<?= e($m['court'] ?? '') ?>"
+            data-referee-main="<?= e($m['referee_main'] ?? '') ?>"
+            data-referee-line1="<?= e($m['referee_line1'] ?? '') ?>"
+            data-referee-line2="<?= e($m['referee_line2'] ?? '') ?>"
             data-set1-a="<?= (int)($m['set1_a'] ?? 0) ?>"
             data-set1-b="<?= (int)($m['set1_b'] ?? 0) ?>"
             data-set2-a="<?= (int)($m['set2_a'] ?? 0) ?>"
@@ -57,7 +60,22 @@ $hasTeams = (!empty($m['team1_id']) && !empty($m['team2_id']));
       ⚙️ Ubah Status
     </button>
 
-    <!-- 3. Tombol "Atur Tim" (Khusus Babak Penyisihan) -->
+    <!-- 3. Tombol "Atur Wasit" (Modal Wasit Utama & 2 Wasit Garis) -->
+    <button type="button" 
+            class="btn small ghost text-xs !py-1 !px-2.5 text-amber-300 hover:text-white border-amber-500/40 hover:bg-amber-600/30 open-referees-modal-btn"
+            data-match-id="<?= (int)$m['id'] ?>"
+            data-match-title="#<?= (int)$m['round'] ?>-<?= (int)$m['position'] ?><?= !empty($m['court']) ? ' · ' . e($m['court']) : '' ?>"
+            data-team1-name="<?= e($m['team1_name'] ?? 'TBD') ?>"
+            data-team2-name="<?= e($m['team2_name'] ?? 'TBD') ?>"
+            data-referee-main="<?= e($m['referee_main'] ?? '') ?>"
+            data-referee-line1="<?= e($m['referee_line1'] ?? '') ?>"
+            data-referee-line2="<?= e($m['referee_line2'] ?? '') ?>"
+            title="<?= !empty($m['referee_main']) ? 'Wasit: ' . e($m['referee_main']) : 'Belum ada wasit yang diatur' ?>"
+    >
+      <span>👔 Atur Wasit</span>
+    </button>
+
+    <!-- 4. Tombol "Atur Tim" (Khusus Babak Penyisihan) -->
     <?php if ($isFirstRound): ?>
       <button type="button" 
               class="btn small ghost text-xs !py-1 !px-2.5 text-blue-400 hover:text-white border-blue-500/40 hover:bg-blue-600/30 open-teams-modal-btn"
@@ -71,7 +89,13 @@ $hasTeams = (!empty($m['team1_id']) && !empty($m['team2_id']));
     <?php endif; ?>
   </div>
 
-  <div class="flex items-center gap-1">
+  <div class="flex items-center gap-1.5">
+    <?php if (!empty($m['referee_main'])): ?>
+      <span class="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/25 px-1.5 py-0.5 text-[10px] text-amber-300 font-semibold truncate max-w-[110px]" title="Wasit: <?= e($m['referee_main']) ?>">
+        <span>👨‍⚖️</span>
+        <span class="truncate"><?= e($m['referee_main']) ?></span>
+      </span>
+    <?php endif; ?>
     <?php if ($m['status'] === 'finished'): ?>
       <span class="badge finished text-[11px] !py-0.5">✓ Selesai</span>
     <?php elseif (!$hasTeams && $m['status'] === 'upcoming'): ?>

@@ -297,6 +297,43 @@
           </div>
         </div>
 
+        <!-- 4. Pengaturan Wasit Pertandingan -->
+        <div class="rounded-xl border border-slate-800 bg-slate-950/70 p-3.5 space-y-3">
+          <div class="flex items-center justify-between text-xs font-bold text-amber-400">
+            <span class="flex items-center gap-1.5">
+              <span>👨‍⚖️</span>
+              <span>Perangkat Wasit Pertandingan</span>
+            </span>
+            <span class="text-[10px] text-slate-400 font-normal">1 Wasit Utama &amp; 2 Wasit Garis</span>
+          </div>
+
+          <div>
+            <label class="text-[11px] text-slate-300 mb-1 block font-semibold">Wasit Utama (1 Orang)</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">👨‍⚖️</span>
+              <input type="text" name="referee_main" id="modalRefereeMain" list="refereesListDatalist" placeholder="Nama Wasit Utama..." maxlength="100" class="w-full rounded-xl border border-slate-700 bg-slate-900 pl-9 pr-3 py-1.5 text-xs text-white focus:border-amber-500 focus:outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div>
+              <label class="text-[11px] text-slate-300 mb-1 block font-semibold">Wasit Garis 1</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">🚩</span>
+                <input type="text" name="referee_line1" id="modalRefereeLine1" list="refereesListDatalist" placeholder="Nama Wasit Garis 1..." maxlength="100" class="w-full rounded-xl border border-slate-700 bg-slate-900 pl-9 pr-3 py-1.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+              </div>
+            </div>
+
+            <div>
+              <label class="text-[11px] text-slate-300 mb-1 block font-semibold">Wasit Garis 2</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">🚩</span>
+                <input type="text" name="referee_line2" id="modalRefereeLine2" list="refereesListDatalist" placeholder="Nama Wasit Garis 2..." maxlength="100" class="w-full rounded-xl border border-slate-700 bg-slate-900 pl-9 pr-3 py-1.5 text-xs text-white focus:border-blue-500 focus:outline-none">
+              </div>
+            </div>
+          </div>
+        </div>
+
         <?php if ($sport === 'futsal'): ?>
           <!-- Futsal: Tanpa input skor manual. Skor mutlak dari highlight gol di Live Panel -->
           <div id="futsalScoreNotice" class="rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-3 text-xs text-emerald-300 flex items-center gap-2">
@@ -415,6 +452,90 @@
   </div>
 </div>
 
+<!-- ================= MODAL 3: ATUR WASIT PERTANDINGAN ================= -->
+<div id="refereesModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden overflow-y-auto">
+  <div class="relative w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl transition-all my-8 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+      <div>
+        <h3 class="text-base font-black text-white flex items-center gap-2">
+          <span>👔</span>
+          <span>Atur Wasit Pertandingan</span>
+        </h3>
+        <p id="refereesModalSubtitle" class="text-xs text-amber-400 font-semibold mt-0.5">Pertandingan #...</p>
+      </div>
+      <button type="button" onclick="closeRefereesModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Card info tim -->
+    <div class="mb-4 rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+      <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Pertandingan:</div>
+      <div class="flex items-center justify-between text-xs font-semibold text-slate-200">
+        <span id="refereesModalTeam1" class="truncate font-bold text-blue-400 max-w-[45%]">Tim 1</span>
+        <span class="text-slate-500 px-2 font-mono text-[11px]">VS</span>
+        <span id="refereesModalTeam2" class="truncate font-bold text-indigo-400 max-w-[45%] text-right">Tim 2</span>
+      </div>
+    </div>
+
+    <form id="refereesModalForm" method="post" action="">
+      <?= csrf_field() ?>
+      <input type="hidden" name="category" value="<?= e($catFilter) ?>">
+
+      <div class="space-y-4">
+        <div>
+          <label class="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+            <span>👨‍⚖️ Wasit Utama (1 Orang)</span>
+            <span class="text-[10px] text-amber-400 font-normal">Pemimpin Pertandingan</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">👨‍⚖️</span>
+            <input type="text" name="referee_main" id="directRefereeMain" list="refereesListDatalist" placeholder="Nama Wasit Utama..." maxlength="100" class="w-full rounded-xl border border-slate-700 bg-slate-950 pl-9 pr-3 py-2 text-sm text-slate-100 focus:border-amber-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+            <span>🚩 Wasit Garis 1 (Hakim Garis)</span>
+            <span class="text-[10px] text-blue-400 font-normal">Line Referee 1</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">🚩</span>
+            <input type="text" name="referee_line1" id="directRefereeLine1" list="refereesListDatalist" placeholder="Nama Wasit Garis 1..." maxlength="100" class="w-full rounded-xl border border-slate-700 bg-slate-950 pl-9 pr-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+            <span>🚩 Wasit Garis 2 (Hakim Garis)</span>
+            <span class="text-[10px] text-blue-400 font-normal">Line Referee 2</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">🚩</span>
+            <input type="text" name="referee_line2" id="directRefereeLine2" list="refereesListDatalist" placeholder="Nama Wasit Garis 2..." maxlength="100" class="w-full rounded-xl border border-slate-700 bg-slate-950 pl-9 pr-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-amber-500/20 bg-amber-950/20 p-3 text-xs text-amber-300/90 leading-relaxed">
+          ℹ️ <b>Info Wasit:</b> Nama wasit utama dan wasit garis akan langsung ditampilkan pada kartu pertandingan di jadwal, bracket, grup, dan playoff halaman publik.
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
+        <button type="button" onclick="closeRefereesModal()" class="btn ghost small !py-2 !px-4">Batal</button>
+        <button type="submit" class="btn small !py-2 !px-4 !bg-amber-600 hover:!bg-amber-500 font-bold text-white shadow-md shadow-amber-600/30">Simpan Wasit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Datalist Autocomplete Wasit -->
+<datalist id="refereesListDatalist">
+  <?php foreach (($refereesList ?? []) as $rName): ?>
+    <option value="<?= e($rName) ?>"></option>
+  <?php endforeach; ?>
+</datalist>
+
 <script>
 // ================= CONTROLLER MODAL STATUS, SISTEM & JADWAL =================
 function updateSchedulePreview() {
@@ -492,6 +613,9 @@ function openStatusModal(btn) {
     document.getElementById('modalScheduleTime').value = '';
   }
   document.getElementById('modalCourt').value = d.court || '';
+  document.getElementById('modalRefereeMain').value = d.refereeMain || '';
+  document.getElementById('modalRefereeLine1').value = d.refereeLine1 || '';
+  document.getElementById('modalRefereeLine2').value = d.refereeLine2 || '';
   updateSchedulePreview();
 
   // Futsal settings: Tipe Pertandingan & Durasi Babak
@@ -602,6 +726,27 @@ function toggleStatusSections() {
   }
 }
 
+// ================= CONTROLLER MODAL ATUR WASIT =================
+function openRefereesModal(btn) {
+  const d = btn.dataset;
+  const form = document.getElementById('refereesModalForm');
+  form.action = '<?= url("admin/$sport/matches") ?>/' + d.matchId + '/referees';
+
+  document.getElementById('refereesModalSubtitle').textContent = 'Pertandingan ' + (d.matchTitle || '#' + d.matchId);
+  document.getElementById('refereesModalTeam1').textContent = d.team1Name || 'TBD';
+  document.getElementById('refereesModalTeam2').textContent = d.team2Name || 'TBD';
+
+  document.getElementById('directRefereeMain').value = d.refereeMain || '';
+  document.getElementById('directRefereeLine1').value = d.refereeLine1 || '';
+  document.getElementById('directRefereeLine2').value = d.refereeLine2 || '';
+
+  document.getElementById('refereesModal').classList.remove('hidden');
+}
+
+function closeRefereesModal() {
+  document.getElementById('refereesModal').classList.add('hidden');
+}
+
 // ================= CONTROLLER MODAL ATUR TIM =================
 function openTeamsModal(btn) {
   const d = btn.dataset;
@@ -625,6 +770,10 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => openStatusModal(btn));
   });
 
+  document.querySelectorAll('.open-referees-modal-btn').forEach(btn => {
+    btn.addEventListener('click', () => openRefereesModal(btn));
+  });
+
   document.querySelectorAll('.open-teams-modal-btn').forEach(btn => {
     btn.addEventListener('click', () => openTeamsModal(btn));
   });
@@ -633,6 +782,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeStatusModal();
+      closeRefereesModal();
       closeTeamsModal();
     }
   });
@@ -641,8 +791,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('statusModal')?.addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeStatusModal();
   });
-  document.getElementById('teamsModal')?.addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) closeTeamsModal();
+  document.getElementById('refereesModal')?.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeRefereesModal();
   });
   document.getElementById('teamsModal')?.addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeTeamsModal();

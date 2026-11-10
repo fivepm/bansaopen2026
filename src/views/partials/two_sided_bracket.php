@@ -56,7 +56,7 @@ if ($isThirdFinished) {
 <?php else: ?>
 
   <!-- ================= PODIUM KEJUARAAN (PANGGUNG 3D PODIUM GAYA FUTSAL) ================= -->
-  <div class="mb-8 rounded-3xl border border-slate-800 bg-gradient-to-b from-[#0e1726] via-[#090d16] to-[#040711] p-6 sm:p-8 shadow-2xl relative overflow-hidden backdrop-blur-md">
+  <div class="podium-container mb-8 rounded-3xl border border-slate-800 bg-gradient-to-b from-[#0e1726] via-[#090d16] to-[#040711] p-6 sm:p-8 shadow-2xl relative overflow-hidden backdrop-blur-md">
     <!-- Ambient Light Glow -->
     <div class="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl"></div>
 
@@ -75,7 +75,7 @@ if ($isThirdFinished) {
     <div class="grid grid-cols-3 gap-2 sm:gap-4 max-w-2xl mx-auto items-end pt-6 pb-2 relative z-10">
       
       <!-- 2ND PLACE (Bawah Kiri - 1st Runner Up) -->
-      <div class="flex flex-col items-center">
+      <div class="podium-col podium-col-2 flex flex-col items-center">
         <div class="flex flex-col items-center text-center mb-2 px-1">
           <div class="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600 text-slate-900 font-black text-xl sm:text-2xl shadow-xl shadow-slate-400/20 border-2 border-slate-200">
             🥈
@@ -100,7 +100,7 @@ if ($isThirdFinished) {
       </div>
 
       <!-- 1ST PLACE (Tengah Atas - Champion) -->
-      <div class="flex flex-col items-center -mt-6">
+      <div class="podium-col podium-col-1 flex flex-col items-center -mt-6">
         <div class="flex flex-col items-center text-center mb-2 px-1">
           <span class="text-xl sm:text-2xl animate-bounce mb-1">👑</span>
           <div class="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 text-amber-950 font-black text-2xl sm:text-3xl shadow-2xl shadow-amber-500/40 border-4 border-amber-200 ring-4 ring-amber-400/30">
@@ -126,7 +126,7 @@ if ($isThirdFinished) {
       </div>
 
       <!-- 3RD PLACE (Bawah Kanan - 2nd Runner Up) -->
-      <div class="flex flex-col items-center">
+      <div class="podium-col podium-col-3 flex flex-col items-center">
         <div class="flex flex-col items-center text-center mb-2 px-1">
           <div class="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-700 via-orange-700 to-orange-900 text-orange-200 font-black text-xl sm:text-2xl shadow-xl shadow-orange-700/20 border-2 border-orange-500">
             🥉
@@ -167,8 +167,8 @@ if ($isThirdFinished) {
         <?php for ($r = 1; $r < $R; $r++): $matches = $leftRounds[$r] ?? []; ?>
           <?php $isSemi = ($r === $R - 1); ?>
           <div class="bracket-col bracket-col-left flex min-w-[290px] max-w-[340px] flex-1 flex-col" data-col-side="left" data-round="<?= $r ?>">
-            <div class="mb-4 rounded-xl border border-slate-800 bg-slate-900/90 py-1.5 text-center shadow-sm">
-              <h4 class="text-xs font-black uppercase tracking-wider text-blue-400">
+            <div class="bracket-round-header bracket-round-header-left mb-4 rounded-xl border border-blue-500 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-600/60 dark:to-blue-800/80 py-2 text-center shadow-md shadow-blue-500/20 backdrop-blur-sm">
+              <h4 class="text-xs font-black uppercase tracking-wider text-white !text-white drop-shadow" style="color: #ffffff !important;">
                 <?= e(round_name($r, $R)) ?> (Kiri)
               </h4>
             </div>
@@ -272,8 +272,8 @@ if ($isThirdFinished) {
         <?php for ($r = $R - 1; $r >= 1; $r--): $matches = $rightRounds[$r] ?? []; ?>
           <?php $isSemi = ($r === $R - 1); ?>
           <div class="bracket-col bracket-col-right flex min-w-[290px] max-w-[340px] flex-1 flex-col" data-col-side="right" data-round="<?= $r ?>">
-            <div class="mb-4 rounded-xl border border-slate-800 bg-slate-900/90 py-1.5 text-center shadow-sm">
-              <h4 class="text-xs font-black uppercase tracking-wider text-indigo-400">
+            <div class="bracket-round-header bracket-round-header-right mb-4 rounded-xl border border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 dark:from-indigo-600/60 dark:to-indigo-800/80 py-2 text-center shadow-md shadow-indigo-500/20 backdrop-blur-sm">
+              <h4 class="text-xs font-black uppercase tracking-wider text-white !text-white drop-shadow" style="color: #ffffff !important;">
                 <?= e(round_name($r, $R)) ?> (Kanan)
               </h4>
             </div>
@@ -462,26 +462,28 @@ if ($isThirdFinished) {
 </defs>
       `;
 
+      const isLight = document.documentElement.classList.contains('light');
+
       for (const p of paths) {
-        let stroke = '#475569';
+        let stroke = isLight ? '#94a3b8' : '#475569';
         let strokeWidth = '2.5';
         let filter = '';
         let dash = '';
         let opacity = '1';
 
         if (p.type === 'semi-left') {
-          stroke = '#38bdf8';
+          stroke = isLight ? '#0284c7' : '#38bdf8';
           strokeWidth = '3';
-          filter = 'filter="url(#glow-semi-left)"';
+          filter = isLight ? '' : 'filter="url(#glow-semi-left)"';
         } else if (p.type === 'semi-right') {
-          stroke = '#818cf8';
+          stroke = isLight ? '#4f46e5' : '#818cf8';
           strokeWidth = '3';
-          filter = 'filter="url(#glow-semi-right)"';
+          filter = isLight ? '' : 'filter="url(#glow-semi-right)"';
         } else if (p.type === 'third-place') {
-          stroke = '#f97316';
+          stroke = isLight ? '#ea580c' : '#f97316';
           strokeWidth = '2';
           dash = 'stroke-dasharray="6,5"';
-          opacity = '0.65';
+          opacity = isLight ? '0.85' : '0.65';
         }
 
         svgHtml += `<path d="${p.d}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="${opacity}" ${dash} ${filter} />`;

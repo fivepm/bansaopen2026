@@ -396,9 +396,13 @@ final class MatchModel
             }
         }
 
+        $refMain = array_key_exists('referee_main', $d) ? $d['referee_main'] : ($m['referee_main'] ?? null);
+        $refLine1 = array_key_exists('referee_line1', $d) ? $d['referee_line1'] : ($m['referee_line1'] ?? null);
+        $refLine2 = array_key_exists('referee_line2', $d) ? $d['referee_line2'] : ($m['referee_line2'] ?? null);
+
         Database::query(
-            'UPDATE matches SET team1_id=?, team2_id=?, score1=?, score2=?, status=?, winner_id=?, scheduled_at=?, court=? WHERE id=?',
-            [$d['team1_id'], $d['team2_id'], $d['score1'], $d['score2'], $d['status'], $winner, $d['scheduled_at'], $d['court'], $id]
+            'UPDATE matches SET team1_id=?, team2_id=?, score1=?, score2=?, status=?, winner_id=?, scheduled_at=?, court=?, referee_main=?, referee_line1=?, referee_line2=? WHERE id=?',
+            [$d['team1_id'], $d['team2_id'], $d['score1'], $d['score2'], $d['status'], $winner, $d['scheduled_at'], $d['court'], $refMain, $refLine1, $refLine2, $id]
         );
 
         if ($m['stage'] === 'group') {

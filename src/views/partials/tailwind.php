@@ -15,7 +15,7 @@ if ($mode === 'build'):
     $css = preg_replace('/^@tailwind\s+\w+;\s*$/m', '', $css);
     ?>
 <script src="https://cdn.tailwindcss.com"></script>
-<script>tailwind.config = { theme: { extend: { colors: { pri: '#1d6ff2' } } } }</script>
+<script>tailwind.config = { darkMode: 'class', theme: { extend: { colors: { pri: '#1d6ff2' } } } }</script>
 <style type="text/tailwindcss">
 <?= $css ?>
 </style>

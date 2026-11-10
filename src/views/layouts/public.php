@@ -9,6 +9,23 @@ $isFullWidth = !empty($fullWidth);
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  // Inisialisasi tema instan sebelum render halaman (mencegah kedipan / flicker)
+  (function() {
+    try {
+      const savedTheme = localStorage.getItem('bansa_theme');
+      if (savedTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+      } else {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      }
+    } catch (e) {
+      document.documentElement.classList.add('dark');
+    }
+  })();
+</script>
 <?php if ($siteLogo): ?><link rel="icon" href="<?= e($siteLogo) ?>"><?php endif; ?>
 <title><?= e($title ?? '') ?> · <?= e($_ENV['APP_NAME'] ?? 'Bansa Open') ?></title>
 <link rel="icon" type="image/png" href="<?= e(favicon_url()) ?>">
@@ -19,7 +36,7 @@ $isFullWidth = !empty($fullWidth);
 <?php if (!empty($refresh)): ?><meta http-equiv="refresh" content="<?= (int)$refresh ?>"><?php endif; ?>
 <?php require __DIR__ . '/../partials/tailwind.php'; ?>
 </head>
-<body class="min-h-screen bg-[#090d16] text-slate-100 antialiased flex flex-col font-['Plus_Jakarta_Sans',system-ui,sans-serif] selection:bg-blue-600 selection:text-white">
+<body class="min-h-screen bg-blue-100 dark:bg-[#090d16] text-slate-100 antialiased flex flex-col font-['Plus_Jakarta_Sans',system-ui,sans-serif] selection:bg-blue-600 selection:text-white">
 <header class="sticky top-0 z-50 border-b border-slate-800/80 bg-[#090d16]/85 backdrop-blur-md">
   <div class="<?= $isFullWidth ? 'w-full px-4 sm:px-6 lg:px-8' : 'container mx-auto max-w-7xl px-4' ?> flex flex-wrap items-center justify-between py-3.5">
     <a class="flex items-center gap-3 text-lg font-extrabold tracking-tight text-white transition hover:opacity-90" href="<?= url('/') ?>">
@@ -33,9 +50,23 @@ $isFullWidth = !empty($fullWidth);
       </span>
     </a>
 
-    <button type="button" class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700/80 text-slate-300 hover:border-slate-600 hover:text-white md:hidden" aria-label="Menu" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
-      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-    </button>
+    <!-- Area Kanan Header Mobile: Tombol Tema (di samping toggle menu) & Tombol Toggle Menu -->
+    <div class="flex items-center gap-2 md:hidden">
+      <!-- Tombol Tema Mobile (di samping toggle menu) -->
+      <button type="button" 
+              class="theme-toggle-btn flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/60 text-slate-300 hover:border-slate-500 hover:text-white transition shadow-sm active:scale-95" 
+              title="Ganti Tema (Gelap / Terang)" 
+              aria-label="Toggle Dark/Light Mode"
+              onclick="toggleTheme()">
+        <span class="theme-icon-dark hidden text-base leading-none">🌙</span>
+        <span class="theme-icon-light text-base leading-none">☀️</span>
+      </button>
+
+      <!-- Tombol Toggle Header (Menu Mobile) -->
+      <button type="button" class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700/80 text-slate-300 hover:border-slate-600 hover:text-white" aria-label="Menu" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+      </button>
+    </div>
 
     <nav id="mobile-menu" class="hidden w-full flex-col gap-1.5 pt-3 md:flex md:w-auto md:flex-row md:items-center md:gap-1 md:pt-0">
       <?php
@@ -80,6 +111,18 @@ $isFullWidth = !empty($fullWidth);
         <span>👥</span>
         <span>Kepanitiaan</span>
       </a>
+
+      <!-- Tombol Tema Desktop -->
+      <div class="hidden md:flex items-center pl-2 ml-1 border-l border-slate-800/80">
+        <button type="button" 
+                class="theme-toggle-btn flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/60 text-slate-300 hover:border-slate-500 hover:text-white transition shadow-sm active:scale-95" 
+                title="Ganti Tema (Gelap / Terang)" 
+                aria-label="Toggle Dark/Light Mode"
+                onclick="toggleTheme()">
+          <span class="theme-icon-dark hidden text-base leading-none">🌙</span>
+          <span class="theme-icon-light text-base leading-none">☀️</span>
+        </button>
+      </div>
     </nav>
   </div>
 </header>
@@ -114,6 +157,45 @@ document.addEventListener('click', (e) => {
     document.querySelectorAll('.public-cabor-dropdown[open]').forEach(d => d.removeAttribute('open'));
   }
 });
+
+// SISTEM TOGGLE TEMA (GELAP / TERANG) BANSA OPEN
+function toggleTheme() {
+  const isDark = document.documentElement.classList.contains('dark');
+  const targetTheme = isDark ? 'light' : 'dark';
+  
+  if (targetTheme === 'light') {
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
+    try { localStorage.setItem('bansa_theme', 'light'); } catch(e){}
+  } else {
+    document.documentElement.classList.add('dark');
+    document.documentElement.classList.remove('light');
+    try { localStorage.setItem('bansa_theme', 'dark'); } catch(e){}
+  }
+  updateThemeIcons();
+
+  // Render ulang garis SVG diagram bracket jika tersedia pada halaman aktif
+  if (typeof window.drawAllBracketLines === 'function') {
+    requestAnimationFrame(() => window.drawAllBracketLines());
+  }
+}
+
+function updateThemeIcons() {
+  const isLight = document.documentElement.classList.contains('light');
+  document.querySelectorAll('.theme-icon-dark').forEach(el => {
+    el.classList.toggle('hidden', !isLight);
+  });
+  document.querySelectorAll('.theme-icon-light').forEach(el => {
+    el.classList.toggle('hidden', isLight);
+  });
+  document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+    btn.setAttribute('title', isLight ? 'Beralih ke Mode Gelap' : 'Beralih ke Mode Terang');
+  });
+}
+
+// Inisialisasi ikon tema saat DOM siap
+document.addEventListener('DOMContentLoaded', updateThemeIcons);
+updateThemeIcons();
 </script>
 </body>
 </html>

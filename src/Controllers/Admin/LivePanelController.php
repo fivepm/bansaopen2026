@@ -34,11 +34,23 @@ final class LivePanelController
         $liveMatches = Database::all($sql, $params);
         $highlights = \App\Models\MatchHighlight::forMatches(array_column($liveMatches, 'id'));
 
+        $refereesList = Database::all('
+            SELECT DISTINCT referee_name FROM (
+                SELECT referee_main AS referee_name FROM matches WHERE referee_main IS NOT NULL AND referee_main != ""
+                UNION
+                SELECT referee_line1 AS referee_name FROM matches WHERE referee_line1 IS NOT NULL AND referee_line1 != ""
+                UNION
+                SELECT referee_line2 AS referee_name FROM matches WHERE referee_line2 IS NOT NULL AND referee_line2 != ""
+            ) AS ref_pool ORDER BY referee_name ASC
+        ');
+        $refereesList = array_values(array_filter(array_column($refereesList, 'referee_name')));
+
         View::render('admin/live_panel', [
             'title'        => 'Live Panel / Operator Skor',
             'liveMatches'  => $liveMatches,
             'highlights'   => $highlights,
             'sportFilter'  => $sportFilter,
+            'refereesList' => $refereesList,
             'sports'       => Sports::LIST,
         ], 'layouts/admin');
     }

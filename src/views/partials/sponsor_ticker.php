@@ -61,7 +61,7 @@ $dur2 = max(24, (int)(count($half2) * 3.5));
               <img src="<?= e(asset($s['logo_path'])) ?>" alt="<?= $copy ? '' : e($s['name']) ?>" title="<?= e($s['name']) ?>" loading="lazy" class="max-h-full max-w-full object-contain filter drop-shadow group-hover:scale-105 transition-transform duration-200">
             </div>
             <!-- Nama Sponsor di bawah Logo -->
-            <span class="w-full truncate text-center text-[11px] font-bold text-slate-300 group-hover:text-blue-300 transition-colors" title="<?= e($s['name']) ?>">
+            <span class="w-full truncate text-center text-[11px] font-bold text-slate-300 group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors" title="<?= e($s['name']) ?>">
               <?= e($s['name']) ?>
             </span>
           </div>
@@ -79,7 +79,7 @@ $dur2 = max(24, (int)(count($half2) * 3.5));
               <img src="<?= e(asset($s['logo_path'])) ?>" alt="<?= $copy ? '' : e($s['name']) ?>" title="<?= e($s['name']) ?>" loading="lazy" class="max-h-full max-w-full object-contain filter drop-shadow group-hover:scale-105 transition-transform duration-200">
             </div>
             <!-- Nama Sponsor di bawah Logo -->
-            <span class="w-full truncate text-center text-[11px] font-bold text-slate-300 group-hover:text-indigo-300 transition-colors" title="<?= e($s['name']) ?>">
+            <span class="w-full truncate text-center text-[11px] font-bold text-slate-300 group-hover:text-indigo-500 dark:group-hover:text-indigo-300 transition-colors" title="<?= e($s['name']) ?>">
               <?= e($s['name']) ?>
             </span>
           </div>

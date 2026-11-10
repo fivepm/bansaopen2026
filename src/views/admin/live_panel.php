@@ -3,6 +3,27 @@
  * Halaman Khusus Live Panel / Operator Skor Wasit
  * Antarmuka interaktif dengan tombol + dan - per set via Fetch API
  */
+$isWasitRole = \App\Core\Auth::isOperator();
+
+// Kumpulkan data wasit dari daftar pertandingan live yang sedang berlangsung
+$allRefMains = [];
+$allRefLine1 = [];
+$allRefLine2 = [];
+foreach ($liveMatches as $lm) {
+    if (!empty($lm['referee_main'])) $allRefMains[] = $lm['referee_main'];
+    if (!empty($lm['referee_line1'])) $allRefLine1[] = $lm['referee_line1'];
+    if (!empty($lm['referee_line2'])) $allRefLine2[] = $lm['referee_line2'];
+}
+$uniqueRefMains = array_values(array_unique($allRefMains));
+$uniqueRefLines = array_values(array_unique(array_merge($allRefLine1, $allRefLine2)));
+
+// Nama petugas wasit: jika role wasit dan admin sudah mengatur wasit utama di match,
+// gunakan nama wasit utama dari data pertandingan tersebut.
+if ($isWasitRole && !empty($uniqueRefMains)) {
+    $petugasWasitName = implode(' / ', $uniqueRefMains);
+} else {
+    $petugasWasitName = \App\Core\Auth::user()['name'] ?? 'Wasit';
+}
 ?>
 <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
   <div>
@@ -15,11 +36,20 @@
     </p>
   </div>
 
-  <div class="flex items-center gap-2">
-    <span class="rounded-xl border border-slate-700 bg-slate-800/80 px-3.5 py-1.5 text-xs text-slate-300">
-      👤 Petugas: <b><?= e(\App\Core\Auth::user()['name'] ?? 'Wasit') ?></b>
-      <span class="ml-1 text-slate-400">(<?= e(\App\Core\Auth::roleLabel()) ?>)</span>
-    </span>
+  <div class="flex flex-wrap items-center gap-2">
+    <div class="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-700/80 bg-slate-800/90 px-3.5 py-1.5 text-xs text-slate-300 shadow-sm">
+      <div class="flex items-center gap-1.5">
+        <span class="text-amber-400 text-sm">👨‍⚖️</span>
+        <span class="text-slate-400">Petugas Wasit:</span>
+        <b class="text-white font-bold" id="header-petugas-wasit"><?= e($petugasWasitName) ?></b>
+        <span class="ml-1 text-[11px] text-slate-400">(<?= $isWasitRole ? 'Role: Wasit' : e(\App\Core\Auth::roleLabel()) ?>)</span>
+      </div>
+
+      <div class="flex items-center gap-1.5 border-l border-slate-700 pl-2 text-slate-400 <?= empty($uniqueRefLines) ? 'hidden' : '' ?>" id="header-wasit-garis-wrap">
+        <span class="text-blue-400">🚩 Garis:</span>
+        <b class="text-slate-200 font-semibold" id="header-wasit-garis-text"><?= e(implode(', ', $uniqueRefLines)) ?></b>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -188,6 +218,20 @@
               MODE FOKUS WASIT (🔒 TERKUNCI)
             </span>
 
+            <!-- Badge Petugas Wasit (Terlihat saat Fullscreen) -->
+            <span class="fullscreen-referee-badge hidden items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/15 px-3.5 py-1 text-xs font-bold text-amber-300">
+              <span>👨‍⚖️ Wasit:</span>
+              <span class="text-white font-black" id="fs-ref-main-<?= $m['id'] ?>">
+                <?= e(!empty($m['referee_main']) ? $m['referee_main'] : (\App\Core\Auth::user()['name'] ?? 'Wasit')) ?>
+              </span>
+              <?php if (!empty($m['referee_line1']) || !empty($m['referee_line2'])): ?>
+                <span class="text-slate-400 font-normal">| 🚩 Garis:</span>
+                <span class="text-blue-300 font-semibold" id="fs-ref-lines-<?= $m['id'] ?>">
+                  <?= e(implode(', ', array_filter([$m['referee_line1'] ?? '', $m['referee_line2'] ?? '']))) ?>
+                </span>
+              <?php endif; ?>
+            </span>
+
             <!-- Badge Sistem Scoring / Format Pertandingan -->
             <?php if ($isFutsal): ?>
               <?php
@@ -207,6 +251,49 @@
               LIVE
             </span>
           </div>
+        </div>
+
+        <!-- Banner Informasi Perangkat Wasit yang Bertugas (Wasit Utama 1 orang & Wasit Garis 2 orang) -->
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-2.5 rounded-2xl border border-slate-800 bg-slate-950/80 p-3 sm:px-4 text-xs shadow-inner" id="match-referee-box-<?= $m['id'] ?>">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span class="inline-flex items-center gap-1.5 font-bold uppercase tracking-wider text-[11px] text-amber-400 shrink-0">
+              <span>👨‍⚖️</span>
+              <span>Perangkat Wasit:</span>
+            </span>
+
+            <!-- Wasit Utama -->
+            <span class="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
+              <span class="opacity-80">Wasit Utama:</span>
+              <b class="text-white font-black" id="card-ref-main-<?= $m['id'] ?>">
+                <?= e(!empty($m['referee_main']) ? $m['referee_main'] : 'Belum diatur panitia') ?>
+              </b>
+            </span>
+
+            <!-- Wasit Garis 1 -->
+            <span class="inline-flex items-center gap-1.5 rounded-xl border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-300">
+              <span class="opacity-80">🚩 Wasit Garis 1:</span>
+              <b class="text-white font-bold" id="card-ref-line1-<?= $m['id'] ?>">
+                <?= e(!empty($m['referee_line1']) ? $m['referee_line1'] : '-') ?>
+              </b>
+            </span>
+
+            <!-- Wasit Garis 2 -->
+            <span class="inline-flex items-center gap-1.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-xs font-semibold text-indigo-300">
+              <span class="opacity-80">🚩 Wasit Garis 2:</span>
+              <b class="text-white font-bold" id="card-ref-line2-<?= $m['id'] ?>">
+                <?= e(!empty($m['referee_line2']) ? $m['referee_line2'] : '-') ?>
+              </b>
+            </span>
+          </div>
+
+          <?php if (\App\Core\Auth::isSuperAdmin()): ?>
+            <button type="button"
+                    onclick="openLiveRefereeModal(<?= (int)$m['id'] ?>, '<?= e(addslashes($m['sport_type'])) ?>', '<?= e(addslashes($m['team1_name'] ?? 'Tim 1')) ?>', '<?= e(addslashes($m['team2_name'] ?? 'Tim 2')) ?>', '<?= e(addslashes($m['referee_main'] ?? '')) ?>', '<?= e(addslashes($m['referee_line1'] ?? '')) ?>', '<?= e(addslashes($m['referee_line2'] ?? '')) ?>')"
+                    class="rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 px-3 py-1 text-xs font-bold transition flex items-center gap-1 shadow-sm">
+              <span>✏️</span>
+              <span>Atur Wasit</span>
+            </button>
+          <?php endif; ?>
         </div>
 
         <!-- Scoreboard Ringkasan Utama -->
@@ -1019,6 +1106,75 @@
     <?php endforeach; ?>
   </div>
 <?php endif; ?>
+
+<!-- ================= MODAL ATUR WASIT (LIVE PANEL) ================= -->
+<div id="liveRefereeModal" class="fixed inset-0 z-[100010] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden overflow-y-auto">
+  <div class="relative w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl transition-all my-8 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+      <div>
+        <h3 class="text-base font-black text-white flex items-center gap-2">
+          <span>👔</span>
+          <span>Atur Perangkat Wasit</span>
+        </h3>
+        <p id="liveRefModalSubtitle" class="text-xs text-amber-400 font-semibold mt-0.5">Pertandingan #...</p>
+      </div>
+      <button type="button" onclick="closeLiveRefereeModal()" class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <form id="liveRefereeModalForm" onsubmit="handleLiveRefereeSubmit(event)">
+      <input type="hidden" id="liveRefMatchId" value="">
+      <input type="hidden" id="liveRefSport" value="">
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="mb-1 block font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+            <span>👨‍⚖️ Wasit Utama (1 Orang)</span>
+            <span class="text-[10px] text-amber-400 font-normal">Pemimpin Pertandingan</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">👨‍⚖️</span>
+            <input type="text" name="referee_main" id="liveModalRefMain" list="liveRefereesDatalist" placeholder="Nama Wasit Utama..." maxlength="100" class="w-full rounded-xl border border-slate-700 bg-slate-950 pl-9 pr-3 py-2 text-sm text-slate-100 focus:border-amber-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-1 block font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+            <span>🚩 Wasit Garis 1</span>
+            <span class="text-[10px] text-blue-400 font-normal">Line Referee 1</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">🚩</span>
+            <input type="text" name="referee_line1" id="liveModalRefLine1" list="liveRefereesDatalist" placeholder="Nama Wasit Garis 1..." maxlength="100" class="w-full rounded-xl border border-slate-700 bg-slate-950 pl-9 pr-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-1 block font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+            <span>🚩 Wasit Garis 2</span>
+            <span class="text-[10px] text-blue-400 font-normal">Line Referee 2</span>
+          </label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">🚩</span>
+            <input type="text" name="referee_line2" id="liveModalRefLine2" list="liveRefereesDatalist" placeholder="Nama Wasit Garis 2..." maxlength="100" class="w-full rounded-xl border border-slate-700 bg-slate-950 pl-9 pr-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none">
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
+        <button type="button" onclick="closeLiveRefereeModal()" class="btn ghost small !py-2 !px-4">Batal</button>
+        <button type="submit" id="liveRefSubmitBtn" class="btn small !py-2 !px-4 !bg-amber-600 hover:!bg-amber-500 font-bold text-white shadow-md shadow-amber-600/30">Simpan Perangkat Wasit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<datalist id="liveRefereesDatalist">
+  <?php foreach (($refereesList ?? []) as $rName): ?>
+    <option value="<?= e($rName) ?>"></option>
+  <?php endforeach; ?>
+</datalist>
 
 <!-- ========================================== -->
 <!-- JAVASCRIPT FETCH API UNTUK LIVE PANEL      -->
@@ -2629,8 +2785,11 @@ document.addEventListener('fullscreenchange', () => {
 });
 
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && activeFullscreenMatchId && isRefereeLocked) {
-    showRefereeToast('⚠️ Layar Terkunci. Klik sudut kanan atas untuk memunculkan tombol buka kunci.');
+  if (e.key === 'Escape') {
+    closeLiveRefereeModal();
+    if (activeFullscreenMatchId && isRefereeLocked) {
+      showRefereeToast('⚠️ Layar Terkunci. Klik sudut kanan atas untuk memunculkan tombol buka kunci.');
+    }
   }
 });
 
@@ -2642,5 +2801,102 @@ window.addEventListener('beforeunload', (e) => {
     return e.returnValue;
   }
 });
+
+// ================= PENGATURAN WASIT DI LIVE PANEL =================
+function openLiveRefereeModal(matchId, sport, team1, team2, refMain, refLine1, refLine2) {
+  document.getElementById('liveRefMatchId').value = matchId;
+  document.getElementById('liveRefSport').value = sport;
+  document.getElementById('liveRefModalSubtitle').textContent = `${team1} VS ${team2} (Match #${matchId})`;
+  document.getElementById('liveModalRefMain').value = refMain || '';
+  document.getElementById('liveModalRefLine1').value = refLine1 || '';
+  document.getElementById('liveModalRefLine2').value = refLine2 || '';
+  document.getElementById('liveRefereeModal').classList.remove('hidden');
+}
+
+function closeLiveRefereeModal() {
+  document.getElementById('liveRefereeModal').classList.add('hidden');
+}
+
+document.getElementById('liveRefereeModal')?.addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeLiveRefereeModal();
+});
+
+async function handleLiveRefereeSubmit(e) {
+  e.preventDefault();
+  const matchId = document.getElementById('liveRefMatchId').value;
+  const sport = document.getElementById('liveRefSport').value;
+  const refMain = document.getElementById('liveModalRefMain').value.trim();
+  const refLine1 = document.getElementById('liveModalRefLine1').value.trim();
+  const refLine2 = document.getElementById('liveModalRefLine2').value.trim();
+  const btn = document.getElementById('liveRefSubmitBtn');
+
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  try {
+    const formData = new FormData();
+    formData.append('referee_main', refMain);
+    formData.append('referee_line1', refLine1);
+    formData.append('referee_line2', refLine2);
+    formData.append('ajax', '1');
+    formData.append('csrf_token', document.querySelector('meta[name="csrf"]')?.content || '');
+
+    const res = await fetch(`<?= url('admin') ?>/${sport}/matches/${matchId}/referees`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+
+    const data = await res.json();
+    if (data.ok) {
+      showRefereeToast('✅ Data perangkat wasit berhasil diperbarui!');
+      
+      // Update DOM pada kartu
+      const mainEl = document.getElementById(`card-ref-main-${matchId}`);
+      if (mainEl) mainEl.textContent = refMain || 'Belum diatur panitia';
+      const l1El = document.getElementById(`card-ref-line1-${matchId}`);
+      if (l1El) l1El.textContent = refLine1 || '-';
+      const l2El = document.getElementById(`card-ref-line2-${matchId}`);
+      if (l2El) l2El.textContent = refLine2 || '-';
+
+      // Update fullscreen banner jika ada
+      const fsMainEl = document.getElementById(`fs-ref-main-${matchId}`);
+      if (fsMainEl) fsMainEl.textContent = refMain || 'Wasit';
+      const fsLinesEl = document.getElementById(`fs-ref-lines-${matchId}`);
+      if (fsLinesEl) {
+        const linesStr = [refLine1, refLine2].filter(Boolean).join(', ');
+        fsLinesEl.textContent = linesStr || '-';
+      }
+
+      // Update header jika role wasit
+      const hWasit = document.getElementById('header-petugas-wasit');
+      if (hWasit && refMain) hWasit.textContent = refMain;
+      const hGarisText = document.getElementById('header-wasit-garis-text');
+      const hGarisWrap = document.getElementById('header-wasit-garis-wrap');
+      const combinedLines = [refLine1, refLine2].filter(Boolean).join(', ');
+      if (hGarisText && hGarisWrap) {
+        if (combinedLines) {
+          hGarisText.textContent = combinedLines;
+          hGarisWrap.classList.remove('hidden');
+        } else {
+          hGarisText.textContent = '';
+          hGarisWrap.classList.add('hidden');
+        }
+      }
+
+      closeLiveRefereeModal();
+    } else {
+      alert(data.error || 'Gagal menyimpan perangkat wasit.');
+    }
+  } catch (err) {
+    console.error('Error saving referees:', err);
+    alert('Terjadi kesalahan koneksi saat menyimpan wasit.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Simpan Perangkat Wasit';
+  }
+}
 </script>
 

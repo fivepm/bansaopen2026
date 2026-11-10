@@ -146,7 +146,7 @@ foreach ($scheduleMatches as $sm) {
           $mStatus = $m['status'] ?? 'upcoming';
           $side = $m['bracket_side'] ?? 'left';
         ?>
-        <div class="schedule-match-card rounded-2xl border border-slate-800 bg-slate-900/90 p-4 sm:p-5 shadow-xl shadow-black/20 transition-all hover:border-slate-700 hover:shadow-2xl"
+        <div class="schedule-match-card rounded-2xl border border-slate-800 bg-slate-900/90 p-4 sm:p-5 shadow-xl shadow-black/20 transition-all hover:border-slate-700 hover:shadow-2xl <?= $mStatus === 'live' ? 'border-l-4 !border-l-red-500' : ($mStatus === 'finished' ? 'border-l-4 !border-l-emerald-500' : 'border-l-4 !border-l-blue-500') ?>"
              data-category="<?= e($mCat) ?>"
              data-status="<?= e($mStatus) ?>"
              id="schedule-card-<?= (int)$m['id'] ?>">
@@ -156,7 +156,7 @@ foreach ($scheduleMatches as $sm) {
             <div class="flex flex-wrap items-center gap-2">
               <!-- Nama Pertandingan Utama (e.g. "Match 1-1 - Babak 16 Besar") -->
               <h3 class="text-sm sm:text-base font-black tracking-tight text-white flex items-center gap-2">
-                <span class="flex h-6 w-auto px-2 items-center justify-center rounded-lg bg-blue-600/20 text-xs font-bold text-blue-400">
+                <span class="flex h-6 w-auto px-2.5 items-center justify-center rounded-lg bg-gradient-to-r from-blue-600/30 via-indigo-600/30 to-blue-600/30 border border-blue-500/40 text-[11px] font-black text-blue-300 shrink-0 shadow-sm">
                   #<?= (int)($m['round'] ?? 1) ?>-<?= (int)($m['position'] ?? 1) ?>
                 </span>
                 <span><?= e($matchOrderName) ?></span>
@@ -194,7 +194,7 @@ foreach ($scheduleMatches as $sm) {
             <!-- Metadata Kanan: Jam/Waktu, Lapangan, dan Status -->
             <div class="flex flex-wrap items-center gap-2">
               <!-- Waktu & Jam Pertandingan -->
-              <div class="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-950/30 px-3 py-1 text-xs font-bold text-amber-300 shadow-sm"
+              <div class="flex items-center gap-1.5 rounded-xl border border-amber-500/35 bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 px-3 py-1 text-xs font-bold text-amber-300 shadow-sm"
                    title="<?= e($dateFormatted) ?>">
                 <i class="bi bi-clock-fill text-amber-400"></i>
                 <span class="font-mono"><?= e($timeFormatted) ?></span>
@@ -205,7 +205,7 @@ foreach ($scheduleMatches as $sm) {
               </div>
 
               <!-- Nama Lapangan / Court -->
-              <div class="flex items-center gap-1.5 rounded-xl border border-cyan-500/30 bg-cyan-950/30 px-3 py-1 text-xs font-bold text-cyan-300 shadow-sm">
+              <div class="flex items-center gap-1.5 rounded-xl border border-cyan-500/35 bg-gradient-to-r from-cyan-500/15 via-teal-500/10 to-cyan-500/15 px-3 py-1 text-xs font-bold text-cyan-300 shadow-sm">
                 <i class="bi bi-geo-alt-fill text-cyan-400"></i>
                 <span><?= e($courtName) ?></span>
               </div>
@@ -234,12 +234,12 @@ foreach ($scheduleMatches as $sm) {
           </div>
 
           <!-- Baris Bawah: Tim A VS Tim B beserta Daftar Anggota di bawahnya (MURNI TANPA SKOR) -->
-          <div class="mt-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 rounded-2xl border border-slate-800/70 bg-slate-950/60 p-4">
+          <div class="mt-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 rounded-2xl border border-slate-800/80 bg-gradient-to-r from-slate-950/80 via-slate-900/60 to-slate-950/80 p-4 shadow-inner schedule-teams-box">
             
             <!-- SISI KIRI: TIM A -->
             <div class="flex-1 flex flex-col justify-center min-w-0">
-              <div class="flex items-center gap-2">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600/20 text-xs font-black text-blue-400">
+              <div class="flex items-center gap-2.5">
+                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-xs font-black text-white shadow-md shadow-blue-500/30">
                   A
                 </span>
                 <div class="text-sm sm:text-base font-black text-white leading-tight break-words <?= $hasT1 ? '' : 'italic text-slate-400' ?>">
@@ -249,7 +249,7 @@ foreach ($scheduleMatches as $sm) {
 
               <!-- Daftar Anggota Pemain Tim A -->
               <?php if (!empty($t1Members)): ?>
-                <div class="mt-2.5 pl-8 space-y-1">
+                <div class="mt-2.5 pl-9 space-y-1">
                   <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Daftar Pemain:</div>
                   <ul class="space-y-1">
                     <?php foreach ($t1Members as $member): ?>
@@ -261,7 +261,7 @@ foreach ($scheduleMatches as $sm) {
                   </ul>
                 </div>
               <?php elseif (!$hasT1): ?>
-                <div class="mt-2 pl-8 text-xs text-slate-500 italic">
+                <div class="mt-2 pl-9 text-xs text-slate-500 italic">
                   <?= ((int)($m['round'] ?? 1) <= 1) ? 'Menunggu penentuan dari panitia' : 'Menunggu pemenang babak sebelumnya' ?>
                 </div>
               <?php endif; ?>
@@ -269,25 +269,25 @@ foreach ($scheduleMatches as $sm) {
 
             <!-- SISI TENGAH: VS SEPARATOR -->
             <div class="shrink-0 flex flex-col items-center justify-center my-1 md:my-0 px-2">
-              <div class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 border border-slate-700/80 text-xs font-black text-slate-400 shadow-inner">
+              <div class="vs-circle flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 border border-slate-700/80 text-[11px] font-black text-amber-400 shadow-lg shadow-black/40 ring-2 ring-slate-800/50">
                 VS
               </div>
             </div>
 
             <!-- SISI KANAN: TIM B -->
             <div class="flex-1 flex flex-col justify-center min-w-0 md:text-right">
-              <div class="flex items-center gap-2 md:justify-end">
+              <div class="flex items-center gap-2.5 md:justify-end">
                 <div class="text-sm sm:text-base font-black text-white leading-tight break-words order-2 md:order-1 <?= $hasT2 ? '' : 'italic text-slate-400' ?>">
                   <?= e($t2Name) ?>
                 </div>
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-indigo-600/20 text-xs font-black text-indigo-400 order-1 md:order-2">
+                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-xs font-black text-white shadow-md shadow-purple-500/30 order-1 md:order-2">
                   B
                 </span>
               </div>
 
               <!-- Daftar Anggota Pemain Tim B -->
               <?php if (!empty($t2Members)): ?>
-                <div class="mt-2.5 pl-8 md:pl-0 md:pr-8 space-y-1">
+                <div class="mt-2.5 pl-9 md:pl-0 md:pr-9 space-y-1">
                   <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 md:text-right">Daftar Pemain:</div>
                   <ul class="space-y-1">
                     <?php foreach ($t2Members as $member): ?>
@@ -306,6 +306,38 @@ foreach ($scheduleMatches as $sm) {
             </div>
 
           </div>
+
+          <!-- Perangkat Wasit Pertandingan (Wasit Utama 1 orang & Wasit Garis 2 orang) -->
+          <?php
+            $hasRefMain = !empty($m['referee_main']);
+            $hasRefLine1 = !empty($m['referee_line1']);
+            $hasRefLine2 = !empty($m['referee_line2']);
+            $hasReferees = ($hasRefMain || $hasRefLine1 || $hasRefLine2);
+          ?>
+          <?php if ($hasReferees): ?>
+            <div class="mt-3.5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 px-4 py-2.5 text-xs text-slate-300 schedule-referee-bar">
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <span class="inline-flex items-center gap-1.5 font-bold uppercase tracking-wider text-[11px] text-amber-400">
+                  <span>👨‍⚖️</span>
+                  <span>Perangkat Wasit:</span>
+                </span>
+                <?php if ($hasRefMain): ?>
+                  <span class="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
+                    <span class="opacity-80">Wasit Utama:</span>
+                    <span class="font-bold text-white"><?= e($m['referee_main']) ?></span>
+                  </span>
+                <?php endif; ?>
+                <?php if ($hasRefLine1 || $hasRefLine2): ?>
+                  <span class="inline-flex items-center gap-1.5 rounded-xl border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-300">
+                    <span class="opacity-80">🚩 Wasit Garis:</span>
+                    <span class="font-bold text-white">
+                      <?= e(implode(', ', array_filter([$m['referee_line1'] ?? '', $m['referee_line2'] ?? '']))) ?>
+                    </span>
+                  </span>
+                <?php endif; ?>
+              </div>
+            </div>
+          <?php endif; ?>
 
         </div>
       <?php endforeach; ?>

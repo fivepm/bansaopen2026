@@ -33,7 +33,7 @@ $secondRunnerUpName = $isThirdFinished ? ($third['winner_name'] ?? 'Pemenang Per
   <!-- ======================================================== -->
   <!-- UI PODIUM JUARA (Champion Tengah, Juara 2 Kiri, Juara 3 Kanan) -->
   <!-- ======================================================== -->
-  <div class="rounded-3xl border border-slate-800 bg-gradient-to-b from-[#0e1726] via-[#090d16] to-[#040711] p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+  <div class="podium-container rounded-3xl border border-slate-800 bg-gradient-to-b from-[#0e1726] via-[#090d16] to-[#040711] p-6 sm:p-8 shadow-2xl relative overflow-hidden">
     
     <!-- Glow Effect Ambient -->
     <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -52,7 +52,7 @@ $secondRunnerUpName = $isThirdFinished ? ($third['winner_name'] ?? 'Pemenang Per
     <div class="grid grid-cols-3 gap-2 sm:gap-4 max-w-2xl mx-auto items-end pt-6 pb-2 relative z-10">
       
       <!-- 2ND PLACE (Bawah Kiri - 1st Runner Up) -->
-      <div class="flex flex-col items-center">
+      <div class="podium-col podium-col-2 flex flex-col items-center">
         <div class="flex flex-col items-center text-center mb-2 px-1">
           <div class="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-200 via-slate-400 to-slate-600 text-slate-900 font-black text-xl sm:text-2xl shadow-xl shadow-slate-400/20 border-2 border-slate-200">
             🥈
@@ -72,7 +72,7 @@ $secondRunnerUpName = $isThirdFinished ? ($third['winner_name'] ?? 'Pemenang Per
       </div>
 
       <!-- 1ST PLACE (Tengah Atas - Champion) -->
-      <div class="flex flex-col items-center -mt-6">
+      <div class="podium-col podium-col-1 flex flex-col items-center -mt-6">
         <div class="flex flex-col items-center text-center mb-2 px-1">
           <span class="text-xl sm:text-2xl animate-bounce mb-1">👑</span>
           <div class="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 text-amber-950 font-black text-2xl sm:text-3xl shadow-2xl shadow-amber-500/40 border-4 border-amber-200 ring-4 ring-amber-400/30">
@@ -93,7 +93,7 @@ $secondRunnerUpName = $isThirdFinished ? ($third['winner_name'] ?? 'Pemenang Per
       </div>
 
       <!-- 3RD PLACE (Bawah Kanan - 2nd Runner Up) -->
-      <div class="flex flex-col items-center">
+      <div class="podium-col podium-col-3 flex flex-col items-center">
         <div class="flex flex-col items-center text-center mb-2 px-1">
           <div class="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-700 via-orange-700 to-orange-900 text-orange-200 font-black text-xl sm:text-2xl shadow-xl shadow-orange-700/20 border-2 border-orange-500">
             🥉

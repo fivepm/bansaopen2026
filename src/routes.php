@@ -110,6 +110,7 @@ $router->get('/admin/{sport}/matches', [AdminMatch::class, 'index'], $mwSuper);
 $router->post('/admin/{sport}/matches/generate', [AdminMatch::class, 'generate'], $mwSuper);
 $router->post('/admin/{sport}/matches/reset', [AdminMatch::class, 'reset'], $mwSuper);
 $router->post('/admin/{sport}/matches/{id}/status-system', [AdminMatch::class, 'updateStatusAndSystem'], $mwSuper);
+$router->post('/admin/{sport}/matches/{id}/referees', [AdminMatch::class, 'updateReferees'], $mwSuper);
 $router->post('/admin/{sport}/matches/{id}/teams', [AdminMatch::class, 'updateTeams'], $mwSuper);
 $router->get('/admin/{sport}/matches/{id}/edit', [AdminMatch::class, 'edit'], $mwSuper);
 $router->post('/admin/{sport}/matches/{id}/update', [AdminMatch::class, 'update'], $mwSuper);

@@ -208,10 +208,25 @@
   /* Match Card Dark */
   .match {
     @apply overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/90 text-sm shadow-lg shadow-black/20 text-slate-200 transition-all hover:border-slate-700;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .match:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px -4px rgba(0, 0, 0, 0.35);
   }
 
   .match.live {
     @apply border-red-500/80 ring-2 ring-red-500/30 bg-slate-900 shadow-xl shadow-red-500/10;
+    border-left: 4px solid #ef4444 !important;
+  }
+
+  .match.finished {
+    border-left: 4px solid #10b981 !important;
+  }
+
+  .match.upcoming {
+    border-left: 4px solid #3b82f6 !important;
   }
 
   .mhead {
@@ -260,28 +275,63 @@
     @apply absolute top-1/2 -right-7 w-7 border-t-2 border-slate-700;
   }
 
-  /* Two-Sided Bracket Layout & SVG Connectors */
+  /* Two-Sided Bracket Layout, White Scrollbar & SVG Connectors */
+  .bracket,
   .bracket-scroll-container {
-    scrollbar-width: thin;
-    scrollbar-color: #334155 #0b0f19;
+    scrollbar-width: auto;
+    scrollbar-color: #ffffff rgba(255, 255, 255, 0.2);
   }
 
+  .bracket::-webkit-scrollbar,
   .bracket-scroll-container::-webkit-scrollbar {
-    height: 8px;
+    height: 10px;
   }
 
+  .bracket::-webkit-scrollbar-track,
   .bracket-scroll-container::-webkit-scrollbar-track {
-    background: #0b0f19;
+    background: rgba(255, 255, 255, 0.12);
     border-radius: 9999px;
+    margin: 0 0.5rem;
   }
 
+  .bracket::-webkit-scrollbar-thumb,
   .bracket-scroll-container::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: #ffffff !important;
     border-radius: 9999px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 0 2px 4px rgba(0, 0, 0, 0.4);
   }
 
+  .bracket::-webkit-scrollbar-thumb:hover,
   .bracket-scroll-container::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+    background: #ffffff !important;
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.95), 0 2px 6px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Header Keterangan Match di Atas Kolom Bracket (Warna Terang) */
+  .bracket-round-header-left,
+  .bracket-col-left > div.rounded-xl {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.5) 0%, rgba(30, 58, 138, 0.7) 100%) !important;
+    border: 1.5px solid rgba(147, 197, 253, 0.8) !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3) !important;
+  }
+
+  .bracket-col-left h4 {
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    font-weight: 900 !important;
+  }
+
+  .bracket-round-header-right,
+  .bracket-col-right > div.rounded-xl {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.5) 0%, rgba(49, 46, 129, 0.7) 100%) !important;
+    border: 1.5px solid rgba(199, 210, 254, 0.8) !important;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3) !important;
+  }
+
+  .bracket-col-right h4 {
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    font-weight: 900 !important;
   }
 
   .bracket-wrapper {
@@ -558,4 +608,1366 @@
   width: 100% !important;
   border-width: 2px !important;
   box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* ======================================================== */
+/* SISTEM TEMA TERANG (LIGHT MODE) RESMI BANSA OPEN 2026    */
+/* ======================================================== */
+html.light,
+html.light body,
+html.light body[class] {
+  background-color: #dbeafe !important; /* Tailwind blue-100: warna biru terang segar yang membuat card putih pop-out */
+  color: #1e293b !important; /* slate-800: soft contrast, tidak hitam pekat */
+}
+
+/* Transisi halus saat beralih tema */
+html.light,
+html.dark {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* 1. Header & Navigation */
+html.light header {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: #bfdbfe !important;
+  box-shadow: 0 1px 3px 0 rgba(30, 58, 138, 0.06) !important;
+}
+
+html.light header a {
+  color: #334155 !important;
+}
+
+html.light header a:hover {
+  color: #1d4ed8 !important;
+  background-color: #eff6ff !important;
+}
+
+html.light .theme-toggle-btn {
+  background-color: #ffffff !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+  box-shadow: 0 1px 2px rgba(30, 58, 138, 0.06) !important;
+}
+
+html.light .theme-toggle-btn:hover {
+  background-color: #eff6ff !important;
+  border-color: #93c5fd !important;
+  color: #1e40af !important;
+}
+
+html.light .bg-clip-text {
+  background-image: none !important;
+  -webkit-text-fill-color: #0f172a !important;
+  color: #0f172a !important;
+}
+
+html.light .public-cabor-dropdown summary,
+html.light .admin-dropdown summary {
+  color: #334155 !important;
+}
+
+html.light .public-cabor-dropdown summary:hover,
+html.light .admin-dropdown summary:hover {
+  background-color: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
+html.light .public-cabor-dropdown > div,
+html.light .admin-dropdown > div {
+  background-color: #ffffff !important;
+  border-color: #bfdbfe !important;
+  box-shadow: 0 20px 25px -5px rgba(30, 58, 138, 0.08), 0 8px 10px -6px rgba(30, 58, 138, 0.04) !important;
+}
+
+html.light .public-cabor-dropdown a,
+html.light .admin-dropdown a {
+  color: #334155 !important;
+}
+
+html.light .public-cabor-dropdown a:hover,
+html.light .admin-dropdown a:hover {
+  background-color: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
+/* 2. Footer */
+html.light footer {
+  background-color: #ffffff !important;
+  border-color: #bfdbfe !important;
+  color: #64748b !important;
+  box-shadow: 0 -1px 3px 0 rgba(30, 58, 138, 0.04) !important;
+}
+
+html.light footer a {
+  color: #475569 !important;
+}
+
+html.light footer a:hover {
+  color: #1d4ed8 !important;
+}
+
+/* 3. Base Card, Panels & Inverted Backgrounds */
+html.light .card,
+html.light .bg-slate-900,
+html.light .bg-slate-900\/95,
+html.light .bg-slate-900\/90,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/70,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/50,
+html.light .bg-slate-900\/40,
+html.light .bg-slate-950,
+html.light .bg-slate-950\/90,
+html.light .bg-slate-950\/85,
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/70,
+html.light .bg-slate-950\/60,
+html.light .bg-slate-950\/40,
+html.light .bg-slate-950\/30,
+html.light .bg-\[\#090d16\]:not(body),
+html.light .bg-\[\#090d16\]\/90,
+html.light .bg-\[\#090d16\]\/85,
+html.light .bg-\[\#070a12\],
+html.light .bg-\[\#040711\],
+html.light .bg-\[\#0e1726\],
+html.light .bg-\[\#0c121e\] {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important; /* border-slate-300 yang rapi di atas biru */
+  box-shadow: 0 4px 12px -2px rgba(30, 58, 138, 0.08), 0 2px 4px -2px rgba(30, 58, 138, 0.04) !important;
+}
+
+html.light .bg-slate-800,
+html.light .bg-slate-800\/90,
+html.light .bg-slate-800\/80,
+html.light .bg-slate-800\/70,
+html.light .bg-slate-800\/60 {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* 4. Borders & Shadows */
+html.light .border-slate-900,
+html.light .border-slate-800,
+html.light .border-slate-800\/90,
+html.light .border-slate-800\/80,
+html.light .border-slate-800\/70,
+html.light .border-slate-800\/60,
+html.light .border-slate-800\/40,
+html.light .border-slate-700,
+html.light .border-slate-700\/80,
+html.light .border-slate-700\/60,
+html.light .border-slate-700\/50 {
+  border-color: #e2e8f0 !important; /* border-slate-200 */
+}
+
+html.light .shadow-black\/20,
+html.light .shadow-black\/40,
+html.light .shadow-black\/60,
+html.light .shadow-2xl,
+html.light .shadow-xl {
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Aksen Header Card per Cabor di Home Page */
+html.light .cabor-card-badminton {
+  border-top: 4px solid #3b82f6 !important; /* border-blue-500 */
+}
+
+html.light .cabor-card-futsal {
+  border-top: 4px solid #10b981 !important; /* border-emerald-500 */
+}
+
+html.light .cabor-card-pingpong {
+  border-top: 4px solid #f97316 !important; /* border-orange-500 */
+}
+
+/* 5. Text Headings & General Contrast (Soft Contrast: text-slate-800 & text-slate-500) */
+html.light h1:not(.bracket-round-header *),
+html.light h2:not(.bracket-round-header *),
+html.light h3:not(.bracket-round-header *),
+html.light h4:not(.bracket-round-header *):not(.bracket-col *),
+html.light h5:not(.bracket-round-header *),
+html.light h6:not(.bracket-round-header *),
+html.light [class~="font-black"]:not(.bracket-round-header *):not(.bracket-round-header):not(.btn *):not(.btn),
+html.light [class~="font-extrabold"]:not(.bracket-round-header *):not(.bracket-round-header):not(.btn *):not(.btn) {
+  color: #1e293b !important; /* text-slate-800: soft contrast, nyaman di mata */
+}
+
+/* Text yang berada langsung di body/card (KECUALI tombol solid, badge aktif, dll) */
+html.light [class~="text-white"]:not(.btn):not(.tab-btn):not(.subcat-btn):not(.teamcat-btn):not(.schedcat-btn):not(.schedstatus-btn):not(.badge):not(.bracket-round-header):not(.bracket-round-header *):not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-rose-"]):not([class*="bg-emerald-"]):not([class*="from-red-600"]),
+html.light [class~="text-slate-100"]:not(.btn):not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-rose-"]):not([class*="bg-emerald-"]) {
+  color: #1e293b !important; /* text-slate-800 */
+}
+
+html.light [class~="text-slate-200"],
+html.light [class~="text-slate-300"] {
+  color: #475569 !important; /* text-slate-600 */
+}
+
+html.light [class~="text-slate-400"] {
+  color: #64748b !important; /* text-slate-500: deskripsi/waktu */
+}
+
+html.light [class~="text-slate-500"] {
+  color: #64748b !important; /* text-slate-500 */
+}
+
+/* 6. JAMINAN KONTRAS TEKS PUTIH PADA TOMBOL SOLID & BADGE AKTIF */
+html.light .bracket-round-header,
+html.light .bracket-round-header *,
+html.light .bracket-col-left .bracket-round-header,
+html.light .bracket-col-left .bracket-round-header *,
+html.light .bracket-col-right .bracket-round-header,
+html.light .bracket-col-right .bracket-round-header *,
+html.light .bracket-col h4,
+html.light .bracket-col h3,
+html.light .bracket h3,
+html.light .bracket h4,
+html.light .btn:not(.ghost),
+html.light .btn:not(.ghost) *,
+html.light .tab-btn.bg-blue-600,
+html.light .tab-btn.bg-blue-600 *,
+html.light .subcat-btn.bg-blue-600,
+html.light .subcat-btn.bg-blue-600 *,
+html.light .teamcat-btn.bg-blue-600,
+html.light .teamcat-btn.bg-blue-600 *,
+html.light .schedcat-btn.bg-blue-600,
+html.light .schedcat-btn.bg-blue-600 *,
+html.light .schedstatus-btn.bg-slate-800,
+html.light .schedstatus-btn.bg-slate-800 *,
+html.light a[class*="from-red-600"],
+html.light a[class*="from-red-600"] *,
+html.light [class~="bg-blue-600"],
+html.light [class~="bg-blue-600"] *,
+html.light [class~="bg-red-500"],
+html.light [class~="bg-red-500"] *,
+html.light [class~="bg-red-600"],
+html.light [class~="bg-red-600"] *,
+html.light [class~="bg-rose-600"],
+html.light [class~="bg-rose-600"] *,
+html.light [class~="bg-emerald-600"],
+html.light [class~="bg-emerald-600"] * {
+  color: #ffffff !important;
+}
+
+/* Active tab count pill on solid blue tab */
+html.light .tab-btn.bg-blue-600 span[id*="-count"],
+html.light .tab-btn.bg-blue-600 .rounded-full:not(.bg-red-500) {
+  background-color: rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+}
+
+/* 7. Hero & Banners */
+html.light section.bg-gradient-to-br {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 50%, #dbeafe 100%) !important;
+  border-color: #bfdbfe !important;
+  box-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.08) !important;
+}
+
+/* 8. Tabs & Navigation Bar (.tabs & sport tab-btn) */
+html.light nav[aria-label="Tab Turnamen"] {
+  background-color: #ffffff !important;
+  border-color: #bfdbfe !important;
+  box-shadow: 0 4px 6px -1px rgba(30, 58, 138, 0.05) !important;
+}
+
+html.light .tabs {
+  border-color: #bfdbfe !important;
+}
+
+html.light .tabs a {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+
+html.light .tabs a:hover {
+  color: #1d4ed8 !important;
+}
+
+html.light .tabs a.active {
+  color: #2563eb !important;
+  border-color: #2563eb !important;
+  font-weight: 800 !important;
+}
+
+/* Active Tab Gradient Pill */
+.tab-btn.bg-blue-600 {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px -2px rgba(37, 99, 235, 0.45) !important;
+}
+
+html.light .tab-btn.bg-blue-600 {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.35) !important;
+}
+
+/* Inactive Tab Buttons */
+html.light .tab-btn:not(.bg-blue-600) {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+
+html.light .tab-btn:not(.bg-blue-600):hover {
+  color: #1d4ed8 !important;
+  background-color: #eff6ff !important;
+}
+
+html.light .tab-btn:not(.bg-blue-600) span[id*="-count"],
+html.light .tab-btn:not(.bg-blue-600) .rounded-full:not(.bg-red-500) {
+  background-color: #e2e8f0 !important;
+  color: #334155 !important;
+}
+
+/* Sub-Tab / Kategori Filters */
+html.light .subcat-btn:not(.bg-blue-600),
+html.light .teamcat-btn:not(.bg-blue-600),
+html.light .schedcat-btn:not(.bg-blue-600) {
+  color: #334155 !important;
+}
+
+html.light .subcat-btn:not(.bg-blue-600):hover,
+html.light .teamcat-btn:not(.bg-blue-600):hover,
+html.light .schedcat-btn:not(.bg-blue-600):hover {
+  color: #1d4ed8 !important;
+  background-color: #eff6ff !important;
+}
+
+/* Status Filter Buttons on Tab Jadwal */
+html.light .schedstatus-btn:not(.bg-slate-800) {
+  color: #334155 !important;
+}
+
+html.light .schedstatus-btn:not(.bg-slate-800):hover {
+  color: #1d4ed8 !important;
+  background-color: #eff6ff !important;
+}
+
+html.light .schedstatus-btn.bg-slate-800 {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.12) !important;
+}
+
+/* 9. Match Cards (Bracket, Live, Hasil) & High Contrast Wins */
+html.light .match {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important; /* border-slate-200 */
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05) !important; /* shadow-md */
+}
+
+/* Card berstatus Live: Background gradasi pastel tipis from-red-50 to-white */
+html.light .match.live {
+  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 65%, #fff1f2 100%) !important;
+  border: 1px solid #fca5a5 !important;
+  border-left: 5px solid #ef4444 !important;
+  box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.18), 0 4px 6px -2px rgba(239, 68, 68, 0.08) !important;
+}
+
+html.light .match.finished {
+  border-left: 4px solid #10b981 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .match.upcoming {
+  border-left: 4px solid #3b82f6 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .match:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04) !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .mhead {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .mhead span[class*="font-bold"],
+html.light .mhead span[class*="text-slate-300"] {
+  color: #1e293b !important;
+  font-weight: 700 !important;
+}
+
+html.light .mset-header {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+}
+
+html.light .mset-header .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.light .team {
+  background-color: #ffffff !important;
+  border-color: #f1f5f9 !important;
+}
+
+html.light .team:hover {
+  background-color: #f8fafc !important;
+}
+
+html.light .team.win {
+  background-color: #ecfdf5 !important; /* emerald-50 */
+  border-color: #a7f3d0 !important;
+}
+
+/* Pemenang Pertandingan & Tim: bg-emerald-500 text-white pada skor dan teks hijau pekat */
+html.light .team.win [class*="font-bold"],
+html.light .team.win [class*="text-emerald-300"],
+html.light .team.win [class*="!text-emerald-300"],
+html.light .team.win .break-words {
+  color: #065f46 !important; /* emerald-800 */
+  font-weight: 800 !important;
+}
+
+html.light .team [class~="text-slate-100"],
+html.light .team:not(.win) .break-words {
+  color: #1e293b !important; /* text-slate-800 */
+}
+
+html.light .team [class~="text-slate-400"] {
+  color: #64748b !important; /* text-slate-500 */
+}
+
+html.light .mfoot {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #64748b !important;
+}
+
+html.light .mfoot [class*="text-emerald-400"] {
+  color: #047857 !important; /* emerald-700 */
+  font-weight: 700 !important;
+}
+
+html.light .mfoot [class*="text-amber-400"] {
+  color: #b45309 !important; /* amber-700 */
+  font-weight: 700 !important;
+}
+
+/* Score box on card */
+html.light .team .w-6,
+html.light .team .w-10 {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+  font-weight: 700 !important;
+}
+
+html.light .team span[class*="bg-slate-950"] {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+  font-weight: 700 !important;
+}
+
+/* Set pemenang skor box: bg-emerald-500 text-white solid mencolok */
+html.light .team span[class*="bg-emerald-950"],
+html.light .team .w-6[class*="bg-emerald-950"],
+html.light .team .w-10[class*="bg-emerald-950"],
+html.light .team.win .w-6.bg-emerald-950\/60,
+html.light .team.win .w-10.bg-emerald-950\/60,
+html.light .team.win span[class*="bg-emerald-"] {
+  background-color: #10b981 !important; /* bg-emerald-500 */
+  border-color: #059669 !important;
+  color: #ffffff !important; /* text-white */
+  font-weight: 800 !important;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3) !important;
+}
+
+/* Set belum bertanding strip (-) */
+html.light .team span[class*="text-slate-500"] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+}
+
+/* Badge Sistem di Header Match (Rubber Set, Poin Lanjut, dll) */
+html.light .mhead span[class*="bg-amber-950"] {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
+}
+
+html.light .mhead span[class*="bg-cyan-950"] {
+  background-color: #e0f2fe !important;
+  border-color: #bae6fd !important;
+  color: #0369a1 !important;
+}
+
+html.light .mhead span[class*="bg-emerald-950"] {
+  background-color: #dcfce7 !important;
+  border-color: #bbf7d0 !important;
+  color: #15803d !important;
+}
+
+/* Ikon Berwarna Primer Aplikasi (Bukan Abu-abu) */
+html.light i.bi-clock-fill,
+html.light i.bi-clock,
+html.light i.bi-hourglass-split,
+html.light .text-amber-400 i,
+html.light .text-amber-500 i,
+html.light i[class*="bi-clock"] {
+  color: #d97706 !important; /* amber-600 */
+}
+
+html.light i.bi-geo-alt-fill,
+html.light i.bi-geo-alt,
+html.light .text-cyan-400 i,
+html.light .text-cyan-500 i,
+html.light i[class*="bi-geo"] {
+  color: #0284c7 !important; /* sky-600 */
+}
+
+html.light i.bi-tags-fill,
+html.light i.bi-tag-fill,
+html.light i.bi-tag,
+html.light .text-indigo-400 i,
+html.light .text-indigo-500 i,
+html.light i[class*="bi-tag"] {
+  color: #4f46e5 !important; /* indigo-600 */
+}
+
+html.light i.bi-calendar-event-fill,
+html.light i.bi-calendar-fill,
+html.light i.bi-calendar,
+html.light i[class*="bi-calendar"] {
+  color: #ea580c !important; /* orange-600 */
+}
+
+html.light i.bi-check-circle-fill,
+html.light i.bi-check-circle,
+html.light i[class*="bi-check"] {
+  color: #10b981 !important; /* emerald-500 */
+}
+
+html.light .mhead span[class*="bg-emerald-950"] {
+  background-color: #dcfce7 !important;
+  border-color: #bbf7d0 !important;
+  color: #15803d !important;
+}
+
+/* 10. Tag Informasi Warna (Kategori, Tanggal, Jam, Lokasi) */
+html.light span[class*="bg-indigo-950"] {
+  background-color: #e0e7ff !important;
+  border-color: #c7d2fe !important;
+  color: #3730a3 !important; /* indigo-800 */
+}
+
+html.light div[class*="text-indigo-300"],
+html.light div[class*="text-indigo-400"],
+html.light span[class*="text-indigo-300"],
+html.light span[class*="text-indigo-400"] {
+  color: #3730a3 !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+html.light span[class*="bg-amber-950"] {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+  color: #92400e !important; /* amber-800 */
+}
+
+html.light div[class*="text-amber-300"],
+html.light div[class*="text-amber-400"],
+html.light span[class*="text-amber-300"],
+html.light span[class*="text-amber-400"] {
+  color: #92400e !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+html.light span[class*="bg-cyan-950"] {
+  background-color: #e0f2fe !important;
+  border-color: #bae6fd !important;
+  color: #075985 !important; /* sky-800 */
+}
+
+html.light div[class*="text-cyan-300"],
+html.light div[class*="text-cyan-400"],
+html.light span[class*="text-cyan-300"],
+html.light span[class*="text-cyan-400"] {
+  color: #075985 !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+html.light span[class*="bg-emerald-950"] {
+  background-color: #dcfce7 !important;
+  border-color: #bbf7d0 !important;
+  color: #166534 !important; /* emerald-800 */
+}
+
+html.light div[class*="text-emerald-300"],
+html.light div[class*="text-emerald-400"],
+html.light span[class*="text-emerald-300"],
+html.light span[class*="text-emerald-400"] {
+  color: #047857 !important; /* emerald-700 */
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+/* Stat Overview Cards on Home Page: Hapus segala highlight background pada angka Selesai */
+html.light section[class*="mt-8"] > div [class*="text-emerald-400"],
+html.light section[class*="grid"] > div [class*="text-emerald-400"],
+html.light [class*="text-emerald-400"]:not(.badge) {
+  background: none !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #047857 !important;
+}
+
+html.light span[class*="bg-blue-950"],
+html.light div[class*="bg-blue-950"] {
+  background-color: #dbeafe !important;
+  border-color: #bfdbfe !important;
+  color: #1e40af !important; /* blue-800 */
+}
+
+html.light span[class*="text-blue-400"] {
+  color: #2563eb !important;
+}
+
+/* 11. Tab Jadwal & Lapangan */
+html.light .schedule-match-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important; /* border-slate-200 */
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05) !important; /* shadow-md */
+}
+
+/* Card Jadwal berstatus Live: Gradasi pastel tipis from-red-50 to-white */
+html.light .schedule-match-card[data-status="live"] {
+  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 65%, #fff1f2 100%) !important;
+  border: 1px solid #fca5a5 !important;
+  border-left: 5px solid #ef4444 !important;
+  box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.18), 0 4px 6px -2px rgba(239, 68, 68, 0.08) !important;
+}
+
+html.light .schedule-match-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04) !important;
+}
+
+html.light .schedule-match-card .border-slate-800\/70,
+html.light .schedule-match-card .border-slate-800\/80 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Chip Waktu & Jam di Tab Jadwal */
+html.light .schedule-match-card div[class*="border-amber-500"] {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
+}
+
+/* Chip Lapangan di Tab Jadwal */
+html.light .schedule-match-card div[class*="border-cyan-500"] {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%) !important;
+  border-color: #99f6e4 !important;
+  color: #0f766e !important;
+}
+
+html.light .schedule-match-card .rounded-full.bg-slate-900 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+  font-weight: 700 !important;
+}
+
+html.light .schedule-match-card span[class*="bg-blue-600/20"] {
+  background-color: #dbeafe !important;
+  color: #1d4ed8 !important;
+  border-color: #bfdbfe !important;
+}
+
+html.light .schedule-match-card span[class*="bg-indigo-600/20"] {
+  background-color: #e0e7ff !important;
+  color: #4338ca !important;
+  border-color: #c7d2fe !important;
+}
+
+html.light .schedule-match-card li {
+  color: #475569 !important;
+}
+
+html.light .vs-circle {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+  border-color: #cbd5e1 !important;
+  color: #d97706 !important;
+  box-shadow: 0 4px 8px -1px rgba(0, 0, 0, 0.08) !important;
+}
+
+html.light .schedule-teams-box {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f8fafc 100%) !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 12. Two-Sided Bracket & SVG Lines */
+html.light .bracket,
+html.light .bracket-scroll-container {
+  background-color: #ffffff !important;
+  border-color: #bfdbfe !important;
+  box-shadow: 0 4px 12px -2px rgba(30, 58, 138, 0.06) !important;
+  scrollbar-color: #ffffff #cbd5e1 !important;
+}
+
+html.light .bracket::-webkit-scrollbar-track,
+html.light .bracket-scroll-container::-webkit-scrollbar-track {
+  background: #cbd5e1 !important;
+  border-radius: 9999px;
+}
+
+html.light .bracket::-webkit-scrollbar-thumb,
+html.light .bracket-scroll-container::-webkit-scrollbar-thumb {
+  background: #ffffff !important;
+  border: 2px solid #94a3b8 !important;
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+}
+
+html.light .bracket::-webkit-scrollbar-thumb:hover,
+html.light .bracket-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #f8fafc !important;
+  border-color: #64748b !important;
+}
+
+/* Header Keterangan Match di Atas Kolom Bracket (Tema Terang - Warna Terang & Teks Putih) */
+html.light .bracket-round-header,
+html.light .bracket-round-header-left,
+html.light .bracket-col-left .bracket-round-header,
+html.light .bracket-col-left > div.rounded-xl {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: 1.5px solid #3b82f6 !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+}
+
+html.light .bracket-round-header-right,
+html.light .bracket-col-right .bracket-round-header,
+html.light .bracket-col-right > div.rounded-xl {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+  border: 1.5px solid #6366f1 !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;
+}
+
+html.light .bracket-round-header,
+html.light .bracket-round-header *,
+html.light .bracket-round-header-left *,
+html.light .bracket-round-header-right *,
+html.light .bracket-round-header h3,
+html.light .bracket-round-header h4,
+html.light .bracket-col-left .bracket-round-header h4,
+html.light .bracket-col-left h4,
+html.light .bracket-col-right .bracket-round-header h4,
+html.light .bracket-col-right h4 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+}
+
+html.light .grand-final-box {
+  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 50%, #fffbeb 100%) !important;
+  border-color: #f59e0b !important;
+  box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.12) !important;
+}
+
+html.light .grand-final-box > div.rounded-xl {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+}
+
+html.light .grand-final-box span[class*="text-amber-400"] {
+  color: #92400e !important;
+}
+
+html.light .grand-final-box div[class*="text-amber-300"],
+html.light .grand-final-box div[class*="border-amber-500"] {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
+  font-weight: 800 !important;
+}
+
+html.light .third-place-box {
+  background: linear-gradient(180deg, #fff7ed 0%, #ffffff 50%, #fff7ed 100%) !important;
+  border-color: #f97316 !important;
+  box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.12) !important;
+}
+
+html.light .third-place-box > div.rounded-xl {
+  background-color: #ffedd5 !important;
+  border-color: #fed7aa !important;
+}
+
+html.light .third-place-box span[class*="text-orange-400"] {
+  color: #9a3412 !important;
+}
+
+html.light .third-place-box div[class*="text-orange-300"],
+html.light .third-place-box div[class*="border-orange-500"] {
+  background-color: #ffedd5 !important;
+  border-color: #fed7aa !important;
+  color: #9a3412 !important;
+  font-weight: 800 !important;
+}
+
+/* Perangkat Wasit Pertandingan di Card & Jadwal (Light Mode) */
+html.light .mreferees {
+  background-color: #f8fafc !important;
+  border-top-color: #e2e8f0 !important;
+}
+
+html.light .mreferees span[class*="text-slate-200"],
+html.light .mreferees span[class*="text-slate-300"],
+html.light .mreferees span[class*="text-slate-400"] {
+  color: #334155 !important;
+}
+
+html.light .mreferees span[class*="text-amber-400"] {
+  color: #b45309 !important;
+}
+
+html.light .mreferees span[class*="text-blue-400"] {
+  color: #1d4ed8 !important;
+}
+
+html.light .schedule-referee-bar {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light .schedule-referee-bar span[class*="text-white"] {
+  color: #0f172a !important;
+}
+
+html.light .schedule-referee-bar span[class*="text-amber-300"] {
+  color: #92400e !important;
+}
+
+html.light .schedule-referee-bar span[class*="bg-amber-500/10"] {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+}
+
+html.light .schedule-referee-bar span[class*="text-blue-300"] {
+  color: #1e40af !important;
+}
+
+html.light .schedule-referee-bar span[class*="bg-blue-500/10"] {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+}
+
+/* 13. Podium Kejuaraan (Panggung 3D) */
+html.light .podium-container,
+html.light .mb-8.rounded-3xl.border-slate-800,
+html.light .rounded-3xl[class*="from-[#0e1726]"] {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06) !important;
+}
+
+html.light .podium-container .border-amber-500\/40.bg-amber-500\/15,
+html.light .rounded-3xl[class*="from-[#0e1726]"] .border-amber-500\/40.bg-amber-500\/15 {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
+}
+
+/* 1. JUARA 1 (Champion): bg-yellow-50 / emas muda */
+html.light .podium-col-1 {
+  background-color: #fefce8 !important; /* bg-yellow-50 */
+  border: 2px solid #fde047 !important; /* border emas kuning */
+  border-radius: 1.25rem !important;
+  box-shadow: 0 8px 20px -3px rgba(234, 179, 8, 0.25) !important;
+  padding: 0.75rem 0.5rem 0 0.5rem !important;
+}
+
+html.light .podium-col-1 div[class*="bg-gradient-to-br"] {
+  background: linear-gradient(135deg, #fef08a 0%, #facc15 50%, #eab308 100%) !important;
+  border: 3px solid #fef08a !important;
+  box-shadow: 0 8px 16px -2px rgba(234, 179, 8, 0.35) !important;
+}
+
+html.light .podium-col-1 div[class*="text-amber-300"],
+html.light .podium-col-1 div[class*="text-amber-400"] {
+  color: #854d0e !important; /* gold pekat */
+}
+
+html.light .podium-col-1 div[class*="text-amber-200"] {
+  color: #a16207 !important;
+}
+
+html.light .podium-col-1 div[class*="bg-gradient-to-b"] {
+  background: linear-gradient(180deg, #fde047 0%, #eab308 50%, #ca8a04 100%) !important;
+  border-top: 4px solid #fef08a !important;
+  box-shadow: 0 12px 24px -4px rgba(202, 138, 4, 0.3) !important;
+}
+
+html.light .podium-col-1 div[class*="bg-gradient-to-b"] span {
+  color: #713f12 !important;
+}
+
+/* 2. JUARA 2 (1st Runner-Up): bg-slate-100 / perak abu kebiruan */
+html.light .podium-col-2 {
+  background-color: #f1f5f9 !important; /* bg-slate-100 */
+  border: 2px solid #cbd5e1 !important; /* border perak slate */
+  border-radius: 1.25rem !important;
+  box-shadow: 0 6px 16px -3px rgba(100, 116, 139, 0.15) !important;
+  padding: 0.75rem 0.5rem 0 0.5rem !important;
+}
+
+html.light .podium-col-2 div[class*="bg-gradient-to-br"] {
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 50%, #cbd5e1 100%) !important;
+  border: 2px solid #94a3b8 !important;
+  box-shadow: 0 6px 14px -2px rgba(100, 116, 139, 0.2) !important;
+}
+
+html.light .podium-col-2 div[class*="text-slate-200"],
+html.light .podium-col-2 div[class*="text-slate-400"] {
+  color: #334155 !important; /* slate pekat */
+}
+
+html.light .podium-col-2 div[class*="bg-gradient-to-b"] {
+  background: linear-gradient(180deg, #94a3b8 0%, #64748b 50%, #475569 100%) !important;
+  border-top: 3px solid #e2e8f0 !important;
+  box-shadow: 0 10px 20px -5px rgba(100, 116, 139, 0.2) !important;
+}
+
+html.light .podium-col-2 div[class*="bg-gradient-to-b"] span {
+  color: #ffffff !important;
+}
+
+/* 3. JUARA 3 (2nd Runner-Up): bg-orange-50 / perunggu oranye muda */
+html.light .podium-col-3 {
+  background-color: #fff7ed !important; /* bg-orange-50 */
+  border: 2px solid #fed7aa !important; /* border perunggu orange */
+  border-radius: 1.25rem !important;
+  box-shadow: 0 6px 16px -3px rgba(234, 88, 12, 0.18) !important;
+  padding: 0.75rem 0.5rem 0 0.5rem !important;
+}
+
+html.light .podium-col-3 div[class*="bg-gradient-to-br"] {
+  background: linear-gradient(135deg, #ffedd5 0%, #fdba74 50%, #fb923c 100%) !important;
+  border: 2px solid #ea580c !important;
+  box-shadow: 0 6px 14px -2px rgba(234, 88, 12, 0.25) !important;
+}
+
+html.light .podium-col-3 div[class*="text-orange-300"],
+html.light .podium-col-3 div[class*="text-orange-400"] {
+  color: #9a3412 !important; /* bronze pekat */
+}
+
+html.light .podium-col-3 div[class*="bg-gradient-to-b"] {
+  background: linear-gradient(180deg, #fb923c 0%, #ea580c 50%, #c2410c 100%) !important;
+  border-top: 3px solid #ffedd5 !important;
+  box-shadow: 0 10px 20px -5px rgba(234, 88, 12, 0.25) !important;
+}
+
+html.light .podium-col-3 div[class*="bg-gradient-to-b"] span {
+  color: #ffffff !important;
+}
+
+/* Playoff & Final Futsal Cards */
+html.light #playoffs-container div[class*="border-amber-500/50"] {
+  background-color: #ffffff !important;
+  border-color: #f59e0b !important;
+}
+
+html.light #playoffs-container div[class*="border-amber-500/50"] span[class*="border-amber-500"] {
+  background-color: #fef3c7 !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
+}
+
+html.light #playoffs-container div[class*="border-amber-500/50"] span[class*="text-amber-400"] {
+  color: #92400e !important;
+}
+
+html.light #playoffs-container div[class*="border-blue-500/40"] {
+  background-color: #ffffff !important;
+  border-color: #3b82f6 !important;
+}
+
+html.light #playoffs-container div[class*="border-blue-500/40"] span[class*="border-blue-500"] {
+  background-color: #dbeafe !important;
+  border-color: #bfdbfe !important;
+  color: #1e40af !important;
+}
+
+html.light #playoffs-container div[class*="border-blue-500/40"] span[class*="text-blue-400"] {
+  color: #1d4ed8 !important;
+}
+
+/* Tab Hasil Pertandingan (Finished Matches List) */
+html.light #finished-matches-list > div {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light #finished-matches-list table thead tr {
+  border-color: #e2e8f0 !important;
+}
+
+html.light #finished-matches-list table thead th {
+  color: #475569 !important;
+}
+
+html.light #finished-matches-list table tbody tr {
+  border-color: #e2e8f0 !important;
+}
+
+html.light #finished-matches-list table tr[class*="bg-emerald-950"] {
+  background-color: #f0fdf4 !important;
+}
+
+html.light #finished-matches-list table td span[class*="bg-emerald-950"] {
+  background-color: #dcfce7 !important;
+  border-color: #86efac !important;
+  color: #14532d !important;
+  font-weight: 800 !important;
+}
+
+html.light #finished-matches-list table td span[class*="bg-slate-950"] {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+html.light #finished-matches-list div[class*="text-emerald-300"] {
+  color: #047857 !important;
+  font-weight: 800 !important;
+}
+
+html.light #finished-matches-list span[class*="text-emerald-400"] {
+  color: #047857 !important;
+  font-weight: 800 !important;
+}
+
+html.light #finished-matches-list span[class*="text-slate-400"] {
+  color: #64748b !important;
+}
+
+/* 14. Live Match Cards (Badminton & Futsal): Gradasi pastel tipis from-red-50 to-white */
+html.light .live-match-card {
+  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 65%, #fff1f2 100%) !important;
+  border: 1.5px solid #fca5a5 !important;
+  box-shadow: 0 12px 28px -4px rgba(239, 68, 68, 0.18), 0 4px 6px -2px rgba(239, 68, 68, 0.08) !important;
+}
+
+html.light .live-match-card div[class*="from-slate-900"] {
+  background: linear-gradient(90deg, #fee2e2 0%, #fef2f2 100%) !important;
+  border-bottom: 1.5px solid #fca5a5 !important;
+}
+
+html.light .live-match-card div[class*="from-slate-900"] [class~="text-white"] {
+  color: #991b1b !important;
+}
+
+html.light .live-match-card div[class*="from-slate-900"] [class~="text-slate-400"] {
+  color: #7f1d1d !important;
+}
+
+/* Live chyron badge: Solid mencolok bg-red-500 text-white animate-pulse */
+html.light .live-match-card div[id*="live-chyron"] span[class*="bg-red-"] {
+  background-color: #ef4444 !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4) !important;
+}
+html.light .live-match-card div[id*="live-chyron"] span[class*="bg-red-"] * {
+  color: #ffffff !important;
+}
+
+/* TV Broadcast Table */
+html.light .live-match-card table thead tr {
+  border-color: #fecaca !important;
+}
+
+html.light .live-match-card table thead th {
+  background-color: transparent !important;
+  color: #475569 !important;
+}
+
+html.light .live-match-card table thead th[class*="text-amber-300"] {
+  color: #92400e !important;
+}
+
+html.light .live-match-card table thead th[class*="text-blue-400"] {
+  color: #1d4ed8 !important;
+}
+
+html.light .live-match-card table tbody tr {
+  border-color: #fee2e2 !important;
+}
+
+html.light .live-match-card table tbody td [class~="text-white"] {
+  color: #1e293b !important;
+}
+
+html.light .live-match-card table tbody td [class~="text-slate-400"] {
+  color: #64748b !important;
+}
+
+html.light .live-match-card span[id^="live-score"] {
+  color: #1d4ed8 !important;
+}
+
+/* Active Live Set score box (highlight) */
+html.light .live-match-card span[id^="live-set"][class*="text-amber-300"] {
+  background-color: #fef3c7 !important;
+  border-color: #f59e0b !important;
+  color: #92400e !important;
+}
+
+/* Inactive Live Set score box */
+html.light .live-match-card span[id^="live-set"]:not([class*="text-amber-300"]) {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+/* Fullscreen Toggle Button */
+html.light #btn-toggle-fullscreen {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+}
+
+html.light #btn-toggle-fullscreen:hover {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* 15. Tables (Klasemen & Admin Tables) */
+html.light table th {
+  background-color: #eff6ff !important;
+  color: #1e3a8a !important;
+  border-color: #bfdbfe !important;
+}
+
+html.light table td {
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light table tr:hover td {
+  background-color: #f0f7ff !important;
+}
+
+/* Klasemen W/D/L/PTS Kontras */
+html.light .standings th[class*="text-emerald-400"],
+html.light .standings td[class*="text-emerald-400"],
+html.light table td[class*="text-emerald-400"],
+html.light table th[class*="text-emerald-400"] {
+  color: #047857 !important;
+  font-weight: 700 !important;
+}
+
+html.light .standings th[class*="text-amber-400"],
+html.light .standings td[class*="text-amber-400"],
+html.light table td[class*="text-amber-400"],
+html.light table th[class*="text-amber-400"] {
+  color: #b45309 !important;
+  font-weight: 700 !important;
+}
+
+html.light .standings th[class*="text-rose-400"],
+html.light .standings td[class*="text-rose-400"],
+html.light table td[class*="text-rose-400"],
+html.light table th[class*="text-rose-400"] {
+  color: #b91c1c !important;
+  font-weight: 700 !important;
+}
+
+html.light .standings th[class*="text-blue-400"],
+html.light .standings td[class*="text-blue-400"],
+html.light table td[class*="text-blue-400"],
+html.light table th[class*="text-blue-400"] {
+  color: #1d4ed8 !important;
+  font-weight: 800 !important;
+}
+
+/* 16. Form Controls & Modals */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+
+/* 17. Badges (Solid & Mencolok, Tidak Pudar) */
+html.light .badge {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+html.light .badge.upcoming {
+  background-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+  font-weight: 700 !important;
+}
+
+/* Status Live: Solid mencolok bg-red-500 text-white */
+html.light .badge.live {
+  background-color: #ef4444 !important;
+  border-color: #dc2626 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35) !important;
+}
+
+html.light .badge.live * {
+  color: #ffffff !important;
+}
+
+/* Status Finished: Solid mencolok bg-emerald-500 text-white */
+html.light .badge.finished {
+  background-color: #10b981 !important;
+  border-color: #059669 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25) !important;
+}
+
+html.light .badge.finished * {
+  color: #ffffff !important;
+}
+
+/* 18. Sponsor Ticker & Komite */
+html.light .ticker {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .ticker-item > div {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .ticker-item > div:hover {
+  background-color: #ffffff !important;
+  border-color: #93c5fd !important;
+}
+
+html.light .ticker-item span {
+  background: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #334155 !important;
+}
+
+/* 19. Informasi Kontak & Sosial Media (#kontak) */
+html.light #kontak a {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light #kontak a:hover {
+  background-color: #ffffff !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 10px 20px -3px rgba(30, 58, 138, 0.12) !important;
+}
+
+html.light #kontak a div {
+  background: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html.light #kontak a div.text-white,
+html.light #kontak a [class~="text-white"] {
+  color: #1e293b !important;
+}
+
+html.light #kontak a div.text-slate-400,
+html.light #kontak a [class~="text-slate-400"] {
+  color: #64748b !important;
+}
+
+html.light .committee-card,
+html.light .team-card {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Tombol Aksi Cabor di Home Page */
+html.light a[class*="bg-blue-600/20"] {
+  background-color: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+}
+
+html.light a[class*="bg-blue-600/20"]:hover {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+/* Detail Tim (Team List Items) */
+html.light .team-card li {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #1e293b !important;
+}
+
+html.light .team-card li span[class*="bg-blue-600/20"] {
+  background-color: #dbeafe !important;
+  color: #1d4ed8 !important;
+}
+
+html.light .team-card span[class*="border-slate-700"] {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+/* Kepanitiaan (Committees Page) */
+html.light #panitia-inti span[class*="text-amber-400"] {
+  color: #92400e !important;
+}
+
+html.light div[class*="border-amber-500/30"] {
+  background: #ffffff !important;
+  border-color: #fde68a !important;
+}
+
+html.light div[class*="border-amber-500/30"]:hover {
+  border-color: #f59e0b !important;
+}
+
+html.light div[class*="border-amber-500/30"] p.text-amber-400 {
+  color: #b45309 !important;
+}
+
+html.light div[class*="border-amber-500/30"] h3 {
+  color: #0f172a !important;
 }

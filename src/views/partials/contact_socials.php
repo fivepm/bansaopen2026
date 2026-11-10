@@ -27,7 +27,7 @@ $contacts = \App\Models\Contact::all();
             <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
               <?= e($c['platform_label']) ?>
             </div>
-            <div class="text-xs sm:text-sm font-bold text-white group-hover:text-blue-300 transition-colors">
+            <div class="text-xs sm:text-sm font-bold text-white group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors">
               <?= e($c['account_name']) ?>
             </div>
           </div>

@@ -32,6 +32,17 @@ final class MatchController
             [$sport, $catFilter]
         );
 
+        $refereesList = Database::all('
+            SELECT DISTINCT referee_name FROM (
+                SELECT referee_main AS referee_name FROM matches WHERE referee_main IS NOT NULL AND referee_main != ""
+                UNION
+                SELECT referee_line1 AS referee_name FROM matches WHERE referee_line1 IS NOT NULL AND referee_line1 != ""
+                UNION
+                SELECT referee_line2 AS referee_name FROM matches WHERE referee_line2 IS NOT NULL AND referee_line2 != ""
+            ) AS ref_pool ORDER BY referee_name ASC
+        ');
+        $refereesList = array_values(array_filter(array_column($refereesList, 'referee_name')));
+
         View::render('admin/matches/index', [
             'title'        => 'Pertandingan ' . sport_label($sport),
             'sport'        => $sport,
@@ -41,6 +52,7 @@ final class MatchController
             'twoSided'     => $twoSided,
             'total'        => $twoSided['totalRounds'],
             'teams'        => $teams,
+            'refereesList' => $refereesList,
             'groups'       => $system === 'group' ? GroupModel::forSport($sport) : [],
             'groupMatches' => $system === 'group' ? MatchModel::groupMatches($sport) : [],
             'playoffs'     => $system === 'group' ? \App\Models\Standing::getPlayoffMatches($sport) : [],
@@ -87,12 +99,24 @@ final class MatchController
             [$sport, $cat]
         );
 
+        $refereesList = Database::all('
+            SELECT DISTINCT referee_name FROM (
+                SELECT referee_main AS referee_name FROM matches WHERE referee_main IS NOT NULL AND referee_main != ""
+                UNION
+                SELECT referee_line1 AS referee_name FROM matches WHERE referee_line1 IS NOT NULL AND referee_line1 != ""
+                UNION
+                SELECT referee_line2 AS referee_name FROM matches WHERE referee_line2 IS NOT NULL AND referee_line2 != ""
+            ) AS ref_pool ORDER BY referee_name ASC
+        ');
+        $refereesList = array_values(array_filter(array_column($refereesList, 'referee_name')));
+
         View::render('admin/matches/edit', [
-            'title' => 'Atur Pertandingan',
-            'sport' => $sport,
-            'match' => $match,
-            'teams' => $teams,
-            'total' => MatchModel::knockoutRounds($sport, $cat),
+            'title'        => 'Atur Pertandingan',
+            'sport'        => $sport,
+            'match'        => $match,
+            'teams'        => $teams,
+            'refereesList' => $refereesList,
+            'total'        => MatchModel::knockoutRounds($sport, $cat),
         ], 'layouts/admin');
     }
 
@@ -135,6 +159,13 @@ final class MatchController
 
         $sched = trim($_POST['scheduled_at'] ?? '');
         $court = trim($_POST['court'] ?? '');
+        $refMain  = trim($_POST['referee_main'] ?? '');
+        $refLine1 = trim($_POST['referee_line1'] ?? '');
+        $refLine2 = trim($_POST['referee_line2'] ?? '');
+        $refMain  = $refMain !== '' ? mb_substr($refMain, 0, 100) : null;
+        $refLine1 = $refLine1 !== '' ? mb_substr($refLine1, 0, 100) : null;
+        $refLine2 = $refLine2 !== '' ? mb_substr($refLine2, 0, 100) : null;
+
         $scoringSystem = in_array($_POST['scoring_system'] ?? '', ['poin_lanjut', 'rubber_set'], true)
             ? $_POST['scoring_system']
             : ($match['scoring_system'] ?? 'rubber_set');
@@ -152,13 +183,16 @@ final class MatchController
         );
 
         MatchModel::update((int)$match['id'], [
-            'team1_id'     => $t1,
-            'team2_id'     => $t2,
-            'score1'       => $s1,
-            'score2'       => $s2,
-            'status'       => $status,
-            'scheduled_at' => $sched !== '' ? date('Y-m-d H:i:s', strtotime($sched)) : null,
-            'court'        => $court !== '' ? mb_substr($court, 0, 30) : null,
+            'team1_id'      => $t1,
+            'team2_id'      => $t2,
+            'score1'        => $s1,
+            'score2'        => $s2,
+            'status'        => $status,
+            'scheduled_at'  => $sched !== '' ? date('Y-m-d H:i:s', strtotime($sched)) : null,
+            'court'         => $court !== '' ? mb_substr($court, 0, 30) : null,
+            'referee_main'  => $refMain,
+            'referee_line1' => $refLine1,
+            'referee_line2' => $refLine2,
         ]);
 
         $catParam = !empty($match['category']) ? "?cat={$match['category']}" : '';
@@ -200,6 +234,15 @@ final class MatchController
         $court = trim($_POST['court'] ?? '');
         $court = $court !== '' ? mb_substr($court, 0, 30) : null;
 
+        // Pengaturan Wasit Pertandingan (Wasit Utama 1 orang, Wasit Garis 2 orang)
+        $refMain  = isset($_POST['referee_main']) ? trim((string)$_POST['referee_main']) : null;
+        $refLine1 = isset($_POST['referee_line1']) ? trim((string)$_POST['referee_line1']) : null;
+        $refLine2 = isset($_POST['referee_line2']) ? trim((string)$_POST['referee_line2']) : null;
+
+        $refMain  = ($refMain !== null && $refMain !== '') ? mb_substr($refMain, 0, 100) : ($refMain !== null ? null : ($m['referee_main'] ?? null));
+        $refLine1 = ($refLine1 !== null && $refLine1 !== '') ? mb_substr($refLine1, 0, 100) : ($refLine1 !== null ? null : ($m['referee_line1'] ?? null));
+        $refLine2 = ($refLine2 !== null && $refLine2 !== '') ? mb_substr($refLine2, 0, 100) : ($refLine2 !== null ? null : ($m['referee_line2'] ?? null));
+
         // Jika Live (jika dikirim): kedua tim harus ditentukan
         if ($status === 'live') {
             if (empty($m['team1_id']) || empty($m['team2_id'])) {
@@ -207,13 +250,16 @@ final class MatchController
                 redirect("admin/$sport/matches$catParam");
             }
 
-            Database::query('UPDATE matches SET status = ?, scoring_system = ?, stage = ?, futsal_half_duration = ?, scheduled_at = ?, court = ?, current_set = 0, is_set_finished = 0 WHERE id = ?', [
+            Database::query('UPDATE matches SET status = ?, scoring_system = ?, stage = ?, futsal_half_duration = ?, scheduled_at = ?, court = ?, referee_main = ?, referee_line1 = ?, referee_line2 = ?, current_set = 0, is_set_finished = 0 WHERE id = ?', [
                 $status,
                 $scoringSystem,
                 $stage,
                 $futsalHalfDuration,
                 $scheduledAt,
                 $court,
+                $refMain,
+                $refLine1,
+                $refLine2,
                 $m['id']
             ]);
 
@@ -236,8 +282,8 @@ final class MatchController
                 $winnerId = ($s1 > $s2) ? (int)$m['team1_id'] : (($s2 > $s1) ? (int)$m['team2_id'] : null);
 
                 Database::query(
-                    'UPDATE matches SET stage = ?, futsal_half_duration = ?, scheduled_at = ?, court = ?, status = ?, score1 = ?, score2 = ?, winner_id = ? WHERE id = ?',
-                    [$stage, $futsalHalfDuration, $scheduledAt, $court, 'finished', $s1, $s2, $winnerId, $m['id']]
+                    'UPDATE matches SET stage = ?, futsal_half_duration = ?, scheduled_at = ?, court = ?, referee_main = ?, referee_line1 = ?, referee_line2 = ?, status = ?, score1 = ?, score2 = ?, winner_id = ? WHERE id = ?',
+                    [$stage, $futsalHalfDuration, $scheduledAt, $court, $refMain, $refLine1, $refLine2, 'finished', $s1, $s2, $winnerId, $m['id']]
                 );
 
                 if (!empty($m['group_id'])) {
@@ -256,8 +302,8 @@ final class MatchController
             $set3B = isset($_POST['set3_b']) ? max(0, (int)$_POST['set3_b']) : (int)($m['set3_b'] ?? 0);
 
             Database::query(
-                'UPDATE matches SET scoring_system = ?, scheduled_at = ?, court = ?, set1_a = ?, set1_b = ?, set2_a = ?, set2_b = ?, set3_a = ?, set3_b = ? WHERE id = ?',
-                [$scoringSystem, $scheduledAt, $court, $set1A, $set1B, $set2A, $set2B, $set3A, $set3B, $m['id']]
+                'UPDATE matches SET scoring_system = ?, scheduled_at = ?, court = ?, referee_main = ?, referee_line1 = ?, referee_line2 = ?, set1_a = ?, set1_b = ?, set2_a = ?, set2_b = ?, set3_a = ?, set3_b = ? WHERE id = ?',
+                [$scoringSystem, $scheduledAt, $court, $refMain, $refLine1, $refLine2, $set1A, $set1B, $set2A, $set2B, $set3A, $set3B, $m['id']]
             );
 
             // Muat ulang data terbaru untuk kalkulasi pemenang
@@ -271,14 +317,17 @@ final class MatchController
 
             // Simpan status finished lewat MatchModel::update() agar logika advance bracket berjalan otomatis
             MatchModel::update((int)$m['id'], [
-                'team1_id'     => $m['team1_id'],
-                'team2_id'     => $m['team2_id'],
-                'score1'       => $outcome['score1'],
-                'score2'       => $outcome['score2'],
-                'status'       => 'finished',
-                'winner_id'    => $outcome['winner_id'],
-                'scheduled_at' => $scheduledAt,
-                'court'        => $court,
+                'team1_id'      => $m['team1_id'],
+                'team2_id'      => $m['team2_id'],
+                'score1'        => $outcome['score1'],
+                'score2'        => $outcome['score2'],
+                'status'        => 'finished',
+                'winner_id'     => $outcome['winner_id'],
+                'scheduled_at'  => $scheduledAt,
+                'court'         => $court,
+                'referee_main'  => $refMain,
+                'referee_line1' => $refLine1,
+                'referee_line2' => $refLine2,
             ]);
 
             flash('success', "Pertandingan diselesaikan! Pemenang berhasil melaju otomatis ke babak berikutnya.");
@@ -286,28 +335,72 @@ final class MatchController
         }
 
         // Jika Belum Mulai (upcoming):
-        Database::query('UPDATE matches SET scoring_system = ?, stage = ?, futsal_half_duration = ?, scheduled_at = ?, court = ? WHERE id = ?', [
+        Database::query('UPDATE matches SET scoring_system = ?, stage = ?, futsal_half_duration = ?, scheduled_at = ?, court = ?, referee_main = ?, referee_line1 = ?, referee_line2 = ? WHERE id = ?', [
             $scoringSystem,
             $stage,
             $futsalHalfDuration,
             $scheduledAt,
             $court,
+            $refMain,
+            $refLine1,
+            $refLine2,
             $m['id']
         ]);
 
         MatchModel::update((int)$m['id'], [
-            'team1_id'     => $m['team1_id'],
-            'team2_id'     => $m['team2_id'],
-            'score1'       => 0,
-            'score2'       => 0,
-            'status'       => 'upcoming',
-            'winner_id'    => null,
-            'scheduled_at' => $scheduledAt,
-            'court'        => $court,
+            'team1_id'      => $m['team1_id'],
+            'team2_id'      => $m['team2_id'],
+            'score1'        => 0,
+            'score2'        => 0,
+            'status'        => 'upcoming',
+            'winner_id'     => null,
+            'scheduled_at'  => $scheduledAt,
+            'court'         => $court,
+            'referee_main'  => $refMain,
+            'referee_line1' => $refLine1,
+            'referee_line2' => $refLine2,
         ]);
 
-        flash('success', 'Pengaturan jadwal, sistem set, dan status berhasil disimpan.');
+        flash('success', 'Pengaturan jadwal, sistem set, status, dan wasit berhasil disimpan.');
         redirect("admin/$sport/matches$catParam");
+    }
+
+    /**
+     * Modal Form: Atur Wasit Pertandingan (Wasit Utama 1 orang, Wasit Garis 2 orang).
+     */
+    public function updateReferees(string $sport, string $id): void
+    {
+        Sports::require($sport);
+        $m = $this->find($sport, (int)$id);
+        $catParam = !empty($m['category']) ? "?cat={$m['category']}" : '';
+
+        $refMain  = trim($_POST['referee_main'] ?? '');
+        $refLine1 = trim($_POST['referee_line1'] ?? '');
+        $refLine2 = trim($_POST['referee_line2'] ?? '');
+
+        $refMain  = $refMain !== '' ? mb_substr($refMain, 0, 100) : null;
+        $refLine1 = $refLine1 !== '' ? mb_substr($refLine1, 0, 100) : null;
+        $refLine2 = $refLine2 !== '' ? mb_substr($refLine2, 0, 100) : null;
+
+        Database::query(
+            'UPDATE matches SET referee_main = ?, referee_line1 = ?, referee_line2 = ? WHERE id = ?',
+            [$refMain, $refLine1, $refLine2, $m['id']]
+        );
+
+        if ((isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || isset($_POST['ajax'])) {
+            View::json([
+                'ok' => true,
+                'message' => "Susunan wasit untuk Pertandingan #{$m['round']}-{$m['position']} berhasil disimpan.",
+                'referee_main' => $refMain,
+                'referee_line1' => $refLine1,
+                'referee_line2' => $refLine2,
+            ]);
+            return;
+        }
+
+        $redirectTo = !empty($_POST['redirect_to']) ? $_POST['redirect_to'] : "admin/$sport/matches$catParam";
+        flash('success', "Susunan wasit untuk Pertandingan #{$m['round']}-{$m['position']} berhasil disimpan.");
+        redirect($redirectTo);
     }
 
     /**

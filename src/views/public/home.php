@@ -138,8 +138,16 @@
       <?php
         $isActive = (bool)$s['active'];
         $status = $s['status'] ?? ($isActive ? 'ready' : 'not_started');
+        $accentGrad = match($slug) {
+            'badminton' => 'from-blue-500 via-indigo-500 to-cyan-400',
+            'futsal'    => 'from-emerald-500 via-teal-500 to-green-400',
+            'pingpong'  => 'from-amber-500 via-orange-500 to-rose-400',
+            default     => 'from-blue-600 to-indigo-600',
+        };
       ?>
-      <div class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl shadow-black/20 transition-all duration-300 <?= $isActive ? 'hover:-translate-y-1.5 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10' : 'opacity-85' ?>">
+      <div class="cabor-card-<?= $slug ?> group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl shadow-black/20 transition-all duration-300 <?= $isActive ? 'hover:-translate-y-1.5 hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10' : 'opacity-85' ?>">
+        <!-- Signature Sport Accent Line (4px) -->
+        <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r <?= $accentGrad ?>"></div>
         
         <div>
           <!-- Header Cabor: Emoji & Judul -->

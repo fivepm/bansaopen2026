@@ -11,11 +11,25 @@ $finishedCount = count($finishedMatches);
 $teamCount = count($teams);
 $isGroup = ($system === 'group');
 $hasMultipleCategories = (count($categories) > 1);
+
+$caborAccent = match($sport) {
+    'badminton' => 'from-blue-500 via-indigo-500 to-cyan-400',
+    'futsal'    => 'from-emerald-500 via-teal-500 to-green-400',
+    'pingpong'  => 'from-amber-500 via-orange-500 to-rose-400',
+    default     => 'from-blue-600 to-indigo-600',
+};
+$caborGlow = match($sport) {
+    'badminton' => 'bg-blue-600/20',
+    'futsal'    => 'bg-emerald-600/20',
+    'pingpong'  => 'bg-amber-600/20',
+    default     => 'bg-blue-600/20',
+};
 ?>
 
 <!-- Header Cabor Banner -->
-<section class="relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-950 p-6 sm:p-8 shadow-2xl shadow-black/40">
-  <div class="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-blue-600/15 blur-3xl"></div>
+<section class="cabor-banner cabor-banner-<?= $sport ?> relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-950 p-6 sm:p-8 shadow-2xl shadow-black/40">
+  <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r <?= $caborAccent ?>"></div>
+  <div class="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full <?= $caborGlow ?> blur-3xl"></div>
 
   <div class="relative z-10 flex flex-col justify-between gap-6 md:flex-row md:items-center">
     <div class="space-y-2">
