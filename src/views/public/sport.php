@@ -227,6 +227,11 @@ $caborGlow = match($sport) {
 <!-- ========================================== -->
 <section id="panel-bracket" class="tab-panel hidden mt-6">
   <?php if ($isGroup): ?>
+    <div class="mb-4 flex justify-end">
+      <button type="button" onclick="shareGroupJpg(this)" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition hover:brightness-110 active:scale-95 disabled:opacity-60">
+        <i class="bi bi-share-fill"></i> Bagikan Klasemen &amp; Laga Grup (JPG)
+      </button>
+    </div>
     <!-- Konten Klasemen & Jadwal Khusus Pertandingan Grup (Real-Time Auto-Refresh) -->
     <div id="group-standings-container">
       <?php include dirname(__DIR__) . '/partials/group_standings_content.php'; ?>
@@ -240,6 +245,10 @@ $caborGlow = match($sport) {
         <p class="text-xs sm:text-sm text-slate-400">Tata letak bagan dua sisi (Blok Kiri &amp; Kanan) yang bertemu di Grand Final &amp; Perebutan Juara 3.</p>
       </div>
 
+      <div class="flex flex-wrap items-center gap-2">
+      <button type="button" onclick="shareBracketJpg(this)" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition hover:brightness-110 active:scale-95 disabled:opacity-60">
+        <i class="bi bi-share-fill"></i> Bagikan Bagan (JPG)
+      </button>
       <!-- Sub-Tab / Filter Kategori untuk Badminton (Ganda Putra vs Ganda Putri) -->
       <?php if ($hasMultipleCategories): ?>
         <div class="flex items-center gap-1.5 rounded-2xl border border-slate-800 bg-slate-900/90 p-1.5 shadow-md">
@@ -253,6 +262,7 @@ $caborGlow = match($sport) {
           <?php endforeach; ?>
         </div>
       <?php endif; ?>
+      </div>
     </div>
 
     <!-- Container Bagan per Kategori (Beralih dengan JS tanpa reload) -->
@@ -412,6 +422,29 @@ $caborGlow = match($sport) {
 <script>
 // Variabel kategori bracket aktif global
 window.currentBracketCat = '<?= \App\Models\Sports::defaultCategory($sport) ?>';
+
+// Share JPG
+function shareGroupJpg(btn) {
+  const sportName = <?= json_encode('Turnamen ' . sport_label($sport)) ?>;
+  shareElementAsJpg(document.getElementById('group-standings-container'), {
+    button: btn,
+    title: sportName,
+    subtitle: 'Klasemen & Laga Grup',
+    fileName: <?= json_encode('grup-' . $sport) ?>
+  });
+}
+function shareBracketJpg(btn) {
+  const sportName = <?= json_encode('Turnamen ' . sport_label($sport)) ?>;
+  const cat = window.currentBracketCat;
+  const label = document.querySelector('#btn-subcat-' + cat);
+  const catText = label ? label.textContent.trim().replace(/^\S+\s/, '') : '';
+  shareElementAsJpg(document.getElementById('bracket-cat-content-' + cat), {
+    button: btn,
+    title: sportName,
+    subtitle: 'Bagan Pertandingan' + (catText ? ' · ' + catText : ''),
+    fileName: <?= json_encode('bagan-' . $sport) ?> + (cat ? '-' + cat : '')
+  });
+}
 
 // 1. Switch Tab Utama (Live, Jadwal, Bracket, Playoff, Teams, Hasil)
 function switchTab(tabId) {
