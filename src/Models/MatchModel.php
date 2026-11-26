@@ -18,7 +18,7 @@ final class MatchModel
 
     /**
      * Mengambil struktur bagan dua sisi (Two-Sided Bracket) untuk cabor & kategori tertentu.
-     * @return array{totalRounds: int, left: array<int, array>, right: array<int, array>, final: ?array, thirdPlace: ?array}
+     * @return array{totalRounds: int, left: array<int, array>, right: array<int, array>, final: ?array, thirdPlace: ?array, isRepechage20: bool, bestLoserLeft: ?array, bestLoserRight: ?array}
      */
     public static function twoSidedBracket(string $sport, string $category = 'umum'): array
     {
@@ -51,7 +51,85 @@ final class MatchModel
             }
         }
 
-        return compact('totalRounds', 'left', 'right', 'final', 'thirdPlace');
+        $isRepechage20 = ($totalRounds === 6 && count($left[1] ?? []) === 5 && count($right[1] ?? []) === 5);
+        $bestLoserLeft = $isRepechage20 ? self::computeBestLoser($left[1] ?? []) : null;
+        $bestLoserRight = $isRepechage20 ? self::computeBestLoser($right[1] ?? []) : null;
+
+        return compact('totalRounds', 'left', 'right', 'final', 'thirdPlace', 'isRepechage20', 'bestLoserLeft', 'bestLoserRight');
+    }
+
+    /**
+     * Menghitung peringkat tim kalah dari 5 laga Babak Pendahuluan (format 20 tim).
+     * Urutan: 1) Set yang dimenangkan (misal 1-2 > 0-2), 2) Selisih poin, 3) Total poin dicetak.
+     * Mengembalikan daftar terurut (index 0 = Kalah Terbaik / BYE) jika seluruh 5 laga sudah selesai, atau null jika belum.
+     */
+    private static function rankRound1Losers(array $round1Matches): ?array
+    {
+        if (count($round1Matches) !== 5) {
+            return null;
+        }
+        $losers = [];
+        foreach ($round1Matches as $m) {
+            if (($m['status'] ?? '') !== 'finished' || empty($m['winner_id']) || empty($m['team1_id']) || empty($m['team2_id'])) {
+                return null;
+            }
+            $winnerId = (int)$m['winner_id'];
+            $t1 = (int)$m['team1_id'];
+            $t2 = (int)$m['team2_id'];
+            $isT1Loser = ($winnerId === $t2);
+            $loserId = $isT1Loser ? $t1 : $t2;
+            $loserName = $isT1Loser ? ($m['team1_name'] ?? 'Tim') : ($m['team2_name'] ?? 'Tim');
+
+            $system = $m['scoring_system'] ?? 'rubber_set';
+            $s1A = (int)($m['set1_t1'] ?? 0);
+            $s1B = (int)($m['set1_t2'] ?? 0);
+            $s2A = (int)($m['set2_t1'] ?? 0);
+            $s2B = (int)($m['set2_t2'] ?? 0);
+            $s3A = (int)($m['set3_t1'] ?? 0);
+            $s3B = (int)($m['set3_t2'] ?? 0);
+
+            if ($system === 'poin_lanjut') {
+                $pts1 = (int)($m['score1'] ?? 0);
+                $pts2 = (int)($m['score2'] ?? 0);
+                $setsWon = 0;
+            } else {
+                $setsWon = $isT1Loser ? (int)($m['score1'] ?? 0) : (int)($m['score2'] ?? 0);
+                $pts1 = $s1A + $s2A + $s3A;
+                $pts2 = $s1B + $s2B + $s3B;
+                if ($pts1 === 0 && $pts2 === 0) {
+                    $pts1 = (int)($m['score1'] ?? 0);
+                    $pts2 = (int)($m['score2'] ?? 0);
+                }
+            }
+
+            $ptsFor = $isT1Loser ? $pts1 : $pts2;
+            $ptsAgainst = $isT1Loser ? $pts2 : $pts1;
+            $pointDiff = $ptsFor - $ptsAgainst;
+
+            $losers[] = [
+                'team_id'    => $loserId,
+                'team_name'  => $loserName,
+                'sets_won'   => $setsWon,
+                'point_diff' => $pointDiff,
+                'points_for' => $ptsFor,
+                'pos'        => (int)($m['position'] ?? 0),
+            ];
+        }
+
+        usort($losers, static function (array $a, array $b): int {
+            return ($b['sets_won'] <=> $a['sets_won'])
+                ?: ($b['point_diff'] <=> $a['point_diff'])
+                ?: ($b['points_for'] <=> $a['points_for'])
+                ?: ($a['pos'] <=> $b['pos']);
+        });
+
+        return $losers;
+    }
+
+    private static function computeBestLoser(array $round1Matches): ?array
+    {
+        $ranked = self::rankRound1Losers($round1Matches);
+        return $ranked ? $ranked[0] : null;
     }
 
     /** Pertandingan sistem gugur per babak (kompatibilitas backward / tampilan datar). */
@@ -139,10 +217,29 @@ final class MatchModel
         return (int)(Database::one($sql, $params)['r'] ?? 0);
     }
 
+    /**
+     * Cek apakah bagan cabor & kategori ini menggunakan format 20 tim (Round 1 = 10 laga, totalRounds = 6).
+     */
+    public static function isRepechage20(string $sport, string $category = 'umum'): bool
+    {
+        static $cache = [];
+        $key = $sport . ':' . $category;
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
+        $row = Database::one(
+            "SELECT MAX(round) AS max_r, SUM(CASE WHEN round = 1 THEN 1 ELSE 0 END) AS r1_cnt
+             FROM matches WHERE sport_type = ? AND category = ? AND stage = 'knockout'",
+            [$sport, $category]
+        );
+        return $cache[$key] = ((int)($row['max_r'] ?? 0) === 6 && (int)($row['r1_cnt'] ?? 0) === 10);
+    }
+
     // ---------- Bracket Generator (Two-Sided + Third Place) ----------
 
     /**
-     * Membuat bagan two-sided knockout untuk $slots peserta (4, 8, 16, 32).
+     * Membuat bagan two-sided knockout untuk $slots peserta (4, 8, 16, 20, 32).
+     * Untuk 20 tim: 8 tim babak pendahuluan (play-in) + 12 tim bye langsung ke 16 besar.
      * Bagian kiri dan kanan maju ke tengah, dengan pertandingan Final dan Perebutan Juara 3.
      */
     public static function generateTwoSidedKnockout(string $sport, string $category, int $slots): void
@@ -155,43 +252,109 @@ final class MatchModel
                 [$sport, $category]
             );
 
-            // Hitung total ronde hingga final: misal 8 slot => R = 3 (R1: 4 matches, R2: 2 matches, R3: Final & Juara 3)
-            $totalRounds = (int)ceil(log($slots, 2));
+            if ($slots === 20) {
+                // ===== FORMAT KHUSUS 20 TIM (PENDAHULUAN 5+5 + PENYISIHAN 1 BYE + 2 MATCH PER SISI) =====
+                // Round 1 (Babak Pendahuluan): 5 laga kiri (pos 1-5) + 5 laga kanan (pos 6-10)
+                // Round 2 (Babak Penyisihan): 2 laga kiri (pos 1-2) + 2 laga kanan (pos 3-4) + 1 Kalah Terbaik BYE per sisi
+                // Round 3 (Babak 16 Besar): 4 laga kiri (pos 1-4) + 4 laga kanan (pos 5-8)
+                // Round 4 (Perempat Final): 2 laga kiri (pos 1-2) + 2 laga kanan (pos 3-4)
+                // Round 5 (Semi Final): 1 laga kiri (pos 1) + 1 laga kanan (pos 2)
+                // Round 6 (Puncak): final + third_place
+                $totalRounds = 6;
 
-            // Generate babak penyisihan hingga semifinal (Round 1 s.d. R - 1)
-            for ($round = 1; $round < $totalRounds; $round++) {
-                $matchCount = (int)pow(2, $totalRounds - $round);
-                $half = intdiv($matchCount, 2);
-
-                // Blok Kiri
-                for ($pos = 1; $pos <= $half; $pos++) {
+                // Round 1: Babak Pendahuluan (5 kiri + 5 kanan)
+                for ($pos = 1; $pos <= 5; $pos++) {
                     Database::query(
-                        "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', ?, ?, 'left')",
-                        [$sport, $category, $round, $pos]
+                        "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', 1, ?, 'left')",
+                        [$sport, $category, $pos]
+                    );
+                }
+                for ($pos = 6; $pos <= 10; $pos++) {
+                    Database::query(
+                        "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', 1, ?, 'right')",
+                        [$sport, $category, $pos]
                     );
                 }
 
-                // Blok Kanan
-                for ($pos = $half + 1; $pos <= $matchCount; $pos++) {
+                // Round 2: Babak Penyisihan (2 kiri + 2 kanan)
+                for ($pos = 1; $pos <= 2; $pos++) {
                     Database::query(
-                        "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', ?, ?, 'right')",
-                        [$sport, $category, $round, $pos]
+                        "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', 2, ?, 'left')",
+                        [$sport, $category, $pos]
                     );
                 }
+                for ($pos = 3; $pos <= 4; $pos++) {
+                    Database::query(
+                        "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', 2, ?, 'right')",
+                        [$sport, $category, $pos]
+                    );
+                }
+
+                // Round 3..5: Babak 16 Besar, Perempat Final, Semi Final
+                for ($round = 3; $round < $totalRounds; $round++) {
+                    $matchCount = (int)pow(2, $totalRounds - $round); // r3:8, r4:4, r5:2
+                    $half = intdiv($matchCount, 2);
+
+                    for ($pos = 1; $pos <= $half; $pos++) {
+                        Database::query(
+                            "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', ?, ?, 'left')",
+                            [$sport, $category, $round, $pos]
+                        );
+                    }
+                    for ($pos = $half + 1; $pos <= $matchCount; $pos++) {
+                        Database::query(
+                            "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', ?, ?, 'right')",
+                            [$sport, $category, $round, $pos]
+                        );
+                    }
+                }
+
+                // Final & Juara 3 (Round 6)
+                Database::query(
+                    "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', ?, 1, 'final')",
+                    [$sport, $category, $totalRounds]
+                );
+                Database::query(
+                    "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', ?, 2, 'third_place')",
+                    [$sport, $category, $totalRounds]
+                );
+            } else {
+                // ===== FORMAT STANDAR (4, 8, 16, 32) =====
+                // Hitung total ronde hingga final: misal 8 slot => R = 3 (R1: 4 matches, R2: 2 matches, R3: Final & Juara 3)
+                $totalRounds = (int)ceil(log($slots, 2));
+
+                // Generate babak penyisihan hingga semifinal (Round 1 s.d. R - 1)
+                for ($round = 1; $round < $totalRounds; $round++) {
+                    $matchCount = (int)pow(2, $totalRounds - $round);
+                    $half = intdiv($matchCount, 2);
+
+                    // Blok Kiri
+                    for ($pos = 1; $pos <= $half; $pos++) {
+                        Database::query(
+                            "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', ?, ?, 'left')",
+                            [$sport, $category, $round, $pos]
+                        );
+                    }
+
+                    // Blok Kanan
+                    for ($pos = $half + 1; $pos <= $matchCount; $pos++) {
+                        Database::query(
+                            "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', ?, ?, 'right')",
+                            [$sport, $category, $round, $pos]
+                        );
+                    }
+                }
+
+                // Babak Puncak (Round R): Final & Perebutan Juara 3
+                Database::query(
+                    "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', ?, 1, 'final')",
+                    [$sport, $category, $totalRounds]
+                );
+                Database::query(
+                    "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', ?, 2, 'third_place')",
+                    [$sport, $category, $totalRounds]
+                );
             }
-
-            // Babak Puncak (Round R): Final & Perebutan Juara 3
-            // 1. Grand Final
-            Database::query(
-                "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', ?, 1, 'final')",
-                [$sport, $category, $totalRounds]
-            );
-
-            // 2. Perebutan Juara 3 (Third Place Playoff)
-            Database::query(
-                "INSERT INTO matches (sport_type, category, stage, round, position, bracket_side) VALUES (?, ?, 'knockout', ?, 2, 'third_place')",
-                [$sport, $category, $totalRounds]
-            );
 
             $pdo->commit();
         } catch (\Throwable $e) {
@@ -463,6 +626,100 @@ final class MatchModel
 
         // Babak sebelum semifinal (Round 1 s.d. R - 2)
         if ($round < $totalRounds - 1) {
+            // Cek khusus format 20 tim (totalRounds = 6, Round 1 = 10 laga: 5 kiri + 5 kanan)
+            if ($totalRounds === 6 && ($round === 1 || $round === 2)) {
+                $r1Count = (int)(Database::one(
+                    "SELECT COUNT(*) AS c FROM matches WHERE sport_type = ? AND category = ? AND stage = 'knockout' AND round = 1",
+                    [$sport, $category]
+                )['c'] ?? 0);
+
+                if ($r1Count === 10) {
+                    if ($round === 1) {
+                        // 1. Pemenang Round 1 (Babak Pendahuluan) langsung ke Round 3 (Babak 16 Besar)
+                        $r3Map = [
+                            1  => [1, 'team1_id'],
+                            2  => [1, 'team2_id'],
+                            3  => [2, 'team1_id'],
+                            4  => [2, 'team2_id'],
+                            5  => [3, 'team1_id'],
+                            6  => [5, 'team1_id'],
+                            7  => [5, 'team2_id'],
+                            8  => [6, 'team1_id'],
+                            9  => [6, 'team2_id'],
+                            10 => [7, 'team1_id'],
+                        ];
+                        if (isset($r3Map[$pos])) {
+                            [$tgtPos, $tgtSlot] = $r3Map[$pos];
+                            $next = Database::one(
+                                "SELECT id, status FROM matches WHERE sport_type = ? AND category = ? AND stage = 'knockout' AND round = 3 AND position = ? AND bracket_side = ?",
+                                [$sport, $category, $tgtPos, $bracketSide]
+                            );
+                            if ($next && $next['status'] === 'upcoming') {
+                                Database::query("UPDATE matches SET $tgtSlot = ? WHERE id = ?", [$winner, $next['id']]);
+                            }
+                        }
+
+                        // 2. Jika seluruh 5 laga Round 1 di sisi ini selesai, tentukan 1 Kalah Terbaik (BYE) + 4 tim ke Round 2 (Babak Penyisihan)
+                        $sideR1 = Database::all(
+                            self::SELECT . " WHERE m.sport_type = ? AND m.category = ? AND m.stage = 'knockout' AND m.round = 1 AND m.bracket_side = ? ORDER BY m.position ASC",
+                            [$sport, $category, $bracketSide]
+                        );
+                        $rankedLosers = self::rankRound1Losers($sideR1);
+                        if ($rankedLosers !== null && count($rankedLosers) === 5) {
+                            // Rank 0 = Kalah Terbaik (BYE langsung ke Round 3: 3-3 untuk Kiri, 3-7 untuk Kanan)
+                            $byePos = ($bracketSide === 'left') ? 3 : 7;
+                            $byeMatch = Database::one(
+                                "SELECT id, status FROM matches WHERE sport_type = ? AND category = ? AND stage = 'knockout' AND round = 3 AND position = ? AND bracket_side = ?",
+                                [$sport, $category, $byePos, $bracketSide]
+                            );
+                            if ($byeMatch && $byeMatch['status'] === 'upcoming') {
+                                Database::query('UPDATE matches SET team2_id = ? WHERE id = ?', [$rankedLosers[0]['team_id'], $byeMatch['id']]);
+                            }
+
+                            // Rank 1..4 = 4 tim kalah lainnya bertanding di 2 laga Round 2 (Babak Penyisihan)
+                            $r2Pos1 = ($bracketSide === 'left') ? 1 : 3;
+                            $r2Pos2 = ($bracketSide === 'left') ? 2 : 4;
+                            $m2a = Database::one(
+                                "SELECT id, status FROM matches WHERE sport_type = ? AND category = ? AND stage = 'knockout' AND round = 2 AND position = ? AND bracket_side = ?",
+                                [$sport, $category, $r2Pos1, $bracketSide]
+                            );
+                            if ($m2a && $m2a['status'] === 'upcoming') {
+                                Database::query('UPDATE matches SET team1_id = ?, team2_id = ? WHERE id = ?', [$rankedLosers[1]['team_id'], $rankedLosers[4]['team_id'], $m2a['id']]);
+                            }
+                            $m2b = Database::one(
+                                "SELECT id, status FROM matches WHERE sport_type = ? AND category = ? AND stage = 'knockout' AND round = 2 AND position = ? AND bracket_side = ?",
+                                [$sport, $category, $r2Pos2, $bracketSide]
+                            );
+                            if ($m2b && $m2b['status'] === 'upcoming') {
+                                Database::query('UPDATE matches SET team1_id = ?, team2_id = ? WHERE id = ?', [$rankedLosers[2]['team_id'], $rankedLosers[3]['team_id'], $m2b['id']]);
+                            }
+                        }
+                        return;
+                    }
+
+                    if ($round === 2) {
+                        // Pemenang Round 2 (Babak Penyisihan) masuk ke 3-4 (Kiri) & 3-8 (Kanan)
+                        $r2ToR3 = [
+                            1 => [4, 'team1_id'],
+                            2 => [4, 'team2_id'],
+                            3 => [8, 'team1_id'],
+                            4 => [8, 'team2_id'],
+                        ];
+                        if (isset($r2ToR3[$pos])) {
+                            [$tgtPos, $tgtSlot] = $r2ToR3[$pos];
+                            $next = Database::one(
+                                "SELECT id, status FROM matches WHERE sport_type = ? AND category = ? AND stage = 'knockout' AND round = 3 AND position = ? AND bracket_side = ?",
+                                [$sport, $category, $tgtPos, $bracketSide]
+                            );
+                            if ($next && $next['status'] === 'upcoming') {
+                                Database::query("UPDATE matches SET $tgtSlot = ? WHERE id = ?", [$winner, $next['id']]);
+                            }
+                        }
+                        return;
+                    }
+                }
+            }
+
             if ($bracketSide === 'left') {
                 $nextPos = (int)ceil($pos / 2);
                 $slot = ($pos % 2 === 1) ? 'team1_id' : 'team2_id';

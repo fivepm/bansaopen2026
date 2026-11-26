@@ -63,8 +63,8 @@ final class MatchController
     {
         Sports::require($sport);
         $slots = (int)($_POST['slots'] ?? 0);
-        if (!in_array($slots, [4, 8, 16, 32], true)) {
-            flash('error', 'Ukuran bracket tidak valid (pilih 4, 8, 16, atau 32 peserta).');
+        if (!in_array($slots, [4, 8, 16, 20, 32], true)) {
+            flash('error', 'Ukuran bracket tidak valid (pilih 4, 8, 16, 20, atau 32 peserta).');
             redirect("admin/$sport/matches");
         }
 

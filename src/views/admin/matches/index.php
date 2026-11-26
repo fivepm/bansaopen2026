@@ -15,8 +15,12 @@
     <input type="hidden" name="category" value="<?= e($catFilter) ?>">
     <label>Ukuran Bagan Kiri-Kanan (Two-Sided)
       <select name="slots">
-        <?php foreach ([4, 8, 16, 32] as $n): ?>
-          <option value="<?= $n ?>"><?= $n ?> Peserta (<?= $n / 2 ?> Kiri, <?= $n / 2 ?> Kanan)</option>
+        <?php foreach ([4, 8, 16, 20, 32] as $n): ?>
+          <?php if ($n === 20): ?>
+            <option value="20">20 Peserta — Pendahuluan (5+5) &amp; Penyisihan (1 Kalah Terbaik BYE)</option>
+          <?php else: ?>
+            <option value="<?= $n ?>"><?= $n ?> Peserta (<?= $n / 2 ?> Kiri, <?= $n / 2 ?> Kanan)</option>
+          <?php endif; ?>
         <?php endforeach; ?>
       </select>
     </label>
@@ -73,7 +77,7 @@
             <?php foreach ($twoSided['left'] as $r => $matches): ?>
               <div>
                 <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  <?= e(round_name($r, $twoSided['totalRounds'])) ?> (Kiri)
+                  <?= e(round_name($r, $twoSided['totalRounds'], !empty($twoSided['isRepechage20']))) ?> (Kiri)
                 </h4>
                 <div class="space-y-3">
                   <?php foreach ($matches as $m): ?>
@@ -98,7 +102,7 @@
             <?php foreach ($twoSided['right'] as $r => $matches): ?>
               <div>
                 <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                  <?= e(round_name($r, $twoSided['totalRounds'])) ?> (Kanan)
+                  <?= e(round_name($r, $twoSided['totalRounds'], !empty($twoSided['isRepechage20']))) ?> (Kanan)
                 </h4>
                 <div class="space-y-3">
                   <?php foreach ($matches as $m): ?>

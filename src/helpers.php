@@ -116,8 +116,16 @@ function status_label(string $s): string
     return ['upcoming' => 'Belum Mulai', 'live' => 'Sedang Berlangsung', 'finished' => 'Selesai'][$s] ?? $s;
 }
 
-function round_name(int $round, int $totalRounds): string
+function round_name(int $round, int $totalRounds, bool $isRepechage20 = false): string
 {
+    if ($isRepechage20) {
+        if ($round === 1) {
+            return 'Babak Pendahuluan';
+        }
+        if ($round === 2) {
+            return 'Babak Penyisihan';
+        }
+    }
     return match ($totalRounds - $round) {
         0 => 'Final',
         1 => 'Semi Final',
@@ -265,6 +273,29 @@ function match_team_placeholder(array $m, int $slotNum, ?int $totalRounds = null
         }
 
         $pos = (int)($m['position'] ?? 1);
+
+        // Format khusus 20 tim (Babak Pendahuluan 5+5 + Babak Penyisihan + Babak 16 Besar)
+        if ($totalRounds === 6 && !empty($m['sport_type']) && \App\Models\MatchModel::isRepechage20($m['sport_type'], $m['category'] ?? 'umum')) {
+            if ($round === 2) {
+                return 'TBD';
+            }
+            if ($round === 3) {
+                $r3Labels = [
+                    1 => ['Winner Match #1-1', 'Winner Match #1-2'],
+                    2 => ['Winner Match #1-3', 'Winner Match #1-4'],
+                    3 => ['Winner Match #1-5', 'Best Loser Left'],
+                    4 => ['Winner Match #2-1', 'Winner Match #2-2'],
+                    5 => ['Winner Match #1-6', 'Winner Match #1-7'],
+                    6 => ['Winner Match #1-8', 'Winner Match #1-9'],
+                    7 => ['Winner Match #1-10', 'Best Loser Right'],
+                    8 => ['Winner Match #2-3', 'Winner Match #2-4'],
+                ];
+                if (isset($r3Labels[$pos])) {
+                    return $r3Labels[$pos][($slotNum === 1) ? 0 : 1];
+                }
+            }
+        }
+
         $prevRound = $round - 1;
 
         if ($bracketSide === 'left') {

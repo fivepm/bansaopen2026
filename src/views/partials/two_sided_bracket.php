@@ -2,14 +2,18 @@
 /**
  * Visualisasi Bagan Kiri-Kanan (Two-Sided Bracket) gaya Grand Slam / E-Sports.
  * Dilengkapi dengan Podium Kejuaraan (Hall of Champions) dan Garis Penghubung SVG Presisi.
+ * Mendukung format standar (4/8/16/32 tim) dan format 20 tim (Babak Pendahuluan 5+5 + Babak Penyisihan + 16 Besar).
  * 
- * @var array $bracket array{totalRounds: int, left: array, right: array, final: ?array, thirdPlace: ?array}
+ * @var array $bracket array{totalRounds: int, left: array, right: array, final: ?array, thirdPlace: ?array, isRepechage20: bool, bestLoserLeft: ?array, bestLoserRight: ?array}
  * @var string $catKey
  */
 $catKey = (string)($catKey ?? $ck ?? 'umum');
 $R = (int)($bracket['totalRounds'] ?? 0);
 $leftRounds = $bracket['left'] ?? [];
 $rightRounds = $bracket['right'] ?? [];
+$isRepechage20 = !empty($bracket['isRepechage20']);
+$bestLoserLeft = $bracket['bestLoserLeft'] ?? null;
+$bestLoserRight = $bracket['bestLoserRight'] ?? null;
 $final = $bracket['final'] ?? null;
 $thirdPlace = $bracket['thirdPlace'] ?? null;
 
@@ -157,7 +161,8 @@ if ($isThirdFinished) {
   <div class="bracket-scroll-container w-full overflow-x-auto rounded-3xl border border-slate-800/90 bg-[#090d16]/90 p-4 sm:p-8 shadow-2xl backdrop-blur-md">
     <div class="bracket-wrapper relative flex min-w-[1380px] w-max mx-auto items-stretch justify-between gap-8 sm:gap-12 py-4"
          data-bracket-wrapper
-         data-total-rounds="<?= $R ?>">
+         data-total-rounds="<?= $R ?>"
+         data-repechage20="<?= $isRepechage20 ? '1' : '0' ?>">
 
       <!-- SVG Layer untuk Garis Penghubung Bracket yang Menyatu Sempurna -->
       <svg class="bracket-svg-layer pointer-events-none absolute inset-0 h-full w-full overflow-visible z-0" aria-hidden="true"></svg>
@@ -169,9 +174,17 @@ if ($isThirdFinished) {
           <div class="bracket-col bracket-col-left flex min-w-[290px] max-w-[340px] flex-1 flex-col" data-col-side="left" data-round="<?= $r ?>">
             <div class="bracket-round-header bracket-round-header-left mb-4 rounded-xl border border-blue-500 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-600/60 dark:to-blue-800/80 py-2 text-center shadow-md shadow-blue-500/20 backdrop-blur-sm">
               <h4 class="text-xs font-black uppercase tracking-wider text-white !text-white drop-shadow" style="color: #ffffff !important;">
-                <?= e(round_name($r, $R)) ?> (Kiri)
+                <?= e(round_name($r, $R, $isRepechage20)) ?> (Kiri)
               </h4>
             </div>
+            <?php if ($isRepechage20 && $r === 2): ?>
+              <div class="mb-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-[11px] text-emerald-300 shadow-sm">
+                <div class="font-extrabold uppercase tracking-wider text-emerald-400">🌟 Loser of Pendahuluan</div>
+                <div class="mt-0.5 font-bold text-white truncate">
+                  <?= $bestLoserLeft ? e($bestLoserLeft['team_name']) : 'Menunggu 5 laga Pendahuluan' ?>
+                </div>
+              </div>
+            <?php endif; ?>
             <div class="flex flex-1 flex-col justify-around gap-6">
               <?php $pairs = array_chunk($matches, 2); $mIdx = 0; ?>
               <?php foreach ($pairs as $pIdx => $pair): ?>
@@ -199,6 +212,16 @@ if ($isThirdFinished) {
               <?php endforeach; ?>
             </div>
           </div>
+          <?php if ($isRepechage20 && $r === 2): ?>
+            <!-- Garis putus-putus pemisah Babak Pendahuluan & Penyisihan dengan Babak 16 Besar -->
+            <div class="self-stretch flex flex-col items-center justify-center px-1 select-none" aria-hidden="true">
+              <div class="w-0 flex-1 border-l-2 border-dashed border-amber-500/70 dark:border-amber-400/60"></div>
+              <span class="my-2 rounded-full border border-amber-500/50 bg-amber-500/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-400 whitespace-nowrap shadow-sm">
+                16 Besar ▶
+              </span>
+              <div class="w-0 flex-1 border-l-2 border-dashed border-amber-500/70 dark:border-amber-400/60"></div>
+            </div>
+          <?php endif; ?>
         <?php endfor; ?>
       </div>
 
@@ -274,9 +297,17 @@ if ($isThirdFinished) {
           <div class="bracket-col bracket-col-right flex min-w-[290px] max-w-[340px] flex-1 flex-col" data-col-side="right" data-round="<?= $r ?>">
             <div class="bracket-round-header bracket-round-header-right mb-4 rounded-xl border border-indigo-500 bg-gradient-to-r from-indigo-600 to-indigo-700 dark:from-indigo-600/60 dark:to-indigo-800/80 py-2 text-center shadow-md shadow-indigo-500/20 backdrop-blur-sm">
               <h4 class="text-xs font-black uppercase tracking-wider text-white !text-white drop-shadow" style="color: #ffffff !important;">
-                <?= e(round_name($r, $R)) ?> (Kanan)
+                <?= e(round_name($r, $R, $isRepechage20)) ?> (Kanan)
               </h4>
             </div>
+            <?php if ($isRepechage20 && $r === 2): ?>
+              <div class="mb-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-[11px] text-emerald-300 shadow-sm">
+                <div class="font-extrabold uppercase tracking-wider text-emerald-400">🌟 Loser of Pendahuluan</div>
+                <div class="mt-0.5 font-bold text-white truncate">
+                  <?= $bestLoserRight ? e($bestLoserRight['team_name']) : 'Menunggu 5 laga Pendahuluan' ?>
+                </div>
+              </div>
+            <?php endif; ?>
             <div class="flex flex-1 flex-col justify-around gap-6">
               <?php $pairs = array_chunk($matches, 2); $mIdx = 0; ?>
               <?php foreach ($pairs as $pIdx => $pair): ?>
@@ -304,6 +335,16 @@ if ($isThirdFinished) {
               <?php endforeach; ?>
             </div>
           </div>
+          <?php if ($isRepechage20 && $r === 3): ?>
+            <!-- Garis putus-putus pemisah Babak 16 Besar dengan Babak Penyisihan & Pendahuluan -->
+            <div class="self-stretch flex flex-col items-center justify-center px-1 select-none" aria-hidden="true">
+              <div class="w-0 flex-1 border-l-2 border-dashed border-amber-500/70 dark:border-amber-400/60"></div>
+              <span class="my-2 rounded-full border border-amber-500/50 bg-amber-500/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-400 whitespace-nowrap shadow-sm">
+                ◀ 16 Besar
+              </span>
+              <div class="w-0 flex-1 border-l-2 border-dashed border-amber-500/70 dark:border-amber-400/60"></div>
+            </div>
+          <?php endif; ?>
         <?php endfor; ?>
       </div>
 
@@ -329,6 +370,7 @@ if ($isThirdFinished) {
       if (!svg) return;
 
       const totalRounds = parseInt(wrapper.getAttribute('data-total-rounds') || '0', 10);
+      const isRepechage20 = wrapper.getAttribute('data-repechage20') === '1';
       if (totalRounds < 2) {
         svg.innerHTML = '';
         return;
@@ -356,6 +398,7 @@ if ($isThirdFinished) {
 
       // ================= 1. BLOK KIRI =================
       for (let r = 1; r < totalRounds - 1; r++) {
+        if (isRepechage20 && (r === 1 || r === 2)) continue;
         const nextSlots = wrapper.querySelectorAll(`[data-bracket-slot][data-side="left"][data-round="${r + 1}"]`);
         for (let tIdx = 0; tIdx < nextSlots.length; tIdx++) {
           const tgtEl = wrapper.querySelector(`[data-bracket-slot][data-side="left"][data-round="${r + 1}"][data-index="${tIdx}"]`);
@@ -385,6 +428,7 @@ if ($isThirdFinished) {
 
       // ================= 2. BLOK KANAN =================
       for (let r = 1; r < totalRounds - 1; r++) {
+        if (isRepechage20 && (r === 1 || r === 2)) continue;
         const nextSlots = wrapper.querySelectorAll(`[data-bracket-slot][data-side="right"][data-round="${r + 1}"]`);
         for (let tIdx = 0; tIdx < nextSlots.length; tIdx++) {
           const tgtEl = wrapper.querySelector(`[data-bracket-slot][data-side="right"][data-round="${r + 1}"][data-index="${tIdx}"]`);

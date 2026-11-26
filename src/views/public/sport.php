@@ -246,6 +246,9 @@ $caborGlow = match($sport) {
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
+      <button type="button" onclick="openBracketGuideModal()" class="inline-flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500/15 px-4 py-2 text-xs font-bold text-amber-700 dark:text-amber-300 shadow-sm transition hover:bg-amber-500/25 active:scale-95">
+        <i class="bi bi-info-circle-fill"></i> Penjelasan Sistem Bagan
+      </button>
       <button type="button" onclick="shareBracketJpg(this)" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-blue-600/30 transition hover:brightness-110 active:scale-95 disabled:opacity-60">
         <i class="bi bi-share-fill"></i> Bagikan Bagan (JPG)
       </button>
@@ -283,6 +286,90 @@ $caborGlow = match($sport) {
 
   <?php endif; ?>
 </section>
+
+<?php if (!$isGroup): ?>
+<!-- ================= MODAL PENJELASAN SISTEM BAGAN (UNTUK PESERTA) ================= -->
+<div id="bracketGuideModal" class="fixed inset-0 z-[100020] hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto" onclick="if (event.target === this) closeBracketGuideModal()">
+  <div class="relative w-full max-w-2xl rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-7 shadow-2xl my-8 max-h-[90vh] overflow-y-auto text-slate-800 dark:text-slate-100">
+    <!-- Header Modal -->
+    <div class="flex items-start justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 border border-amber-500/30 text-xl text-amber-500">
+          📖
+        </span>
+        <div>
+          <h3 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white">Panduan Sistem Bagan Pertandingan</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Turnamen <?= e(sport_label($sport)) ?> · Penjelasan alur pertandingan untuk seluruh peserta</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeBracketGuideModal()" class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-white transition" aria-label="Tutup">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Isi Panduan -->
+    <div id="bracketGuideBody" class="mt-5 space-y-4 text-xs sm:text-sm leading-relaxed">
+      <!-- Info Format 20 Tim -->
+      <div class="rounded-2xl border border-blue-200 dark:border-blue-500/30 bg-blue-50/70 dark:bg-blue-950/30 p-4">
+        <div class="flex items-center gap-2 font-black text-blue-700 dark:text-blue-300 text-sm mb-2">
+          <span>🏆</span>
+          <span>Alur Bagan 20 Tim (Sistem 16 Besar + Pendahuluan &amp; Penyisihan)</span>
+        </div>
+        <p class="text-slate-600 dark:text-slate-300 text-xs mb-3">
+          Turnamen tetap menggunakan bagan utama <b>16 Besar Dua Sisi (Blok Kiri &amp; Blok Kanan)</b>, yang diawali dengan <b>Babak Pendahuluan</b> dan <b>Babak Penyisihan</b> untuk menyaring 20 tim menjadi 16 tim:
+        </p>
+
+        <div class="space-y-2.5 text-xs">
+          <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 p-3">
+            <div class="font-extrabold text-slate-900 dark:text-white">1️⃣ Babak Pendahuluan (Round 1 — 5 Laga Kiri &amp; 5 Laga Kanan)</div>
+            <ul class="mt-1.5 list-disc pl-4 space-y-1 text-slate-600 dark:text-slate-300">
+              <li>20 tim dibagi ke <b>Blok Kiri (10 tim / 5 laga: #1-1 s.d. #1-5)</b> dan <b>Blok Kanan (10 tim / 5 laga: #1-6 s.d. #1-10)</b>.</li>
+              <li><b>Pemenang</b> di masing-masing laga langsung lolos ke <b>Babak 16 Besar</b>.</li>
+              <li><b>5 tim yang kalah</b> di masing-masing sisi tidak langsung gugur, melainkan masuk ke penilaian <b>Babak Penyisihan</b>.</li>
+            </ul>
+          </div>
+
+          <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 p-3">
+            <div class="font-extrabold text-slate-900 dark:text-white">2️⃣ Babak Penyisihan (Round 2 — Kesempatan Kedua per Sisi)</div>
+            <ul class="mt-1.5 list-disc pl-4 space-y-1 text-slate-600 dark:text-slate-300">
+              <li>Dari 5 tim yang kalah di Babak Pendahuluan pada tiap sisi, dipilih <b>1 Tim Kalah Terbaik (Best Loser)</b> berdasarkan <b>skor set terbanyak</b> (misal kalah 1–2 lebih baik dari 0–2), lalu <b>selisih poin tertinggi</b>.</li>
+              <li><b>1 Tim Kalah Terbaik (Best Loser)</b> mendapat <b>BYE</b> dan langsung menunggu di <b>Babak 16 Besar</b> (slot <code>#3-3</code> di Kiri / <code>#3-7</code> di Kanan).</li>
+              <li><b>4 tim kalah lainnya</b> bertanding dalam <b>2 laga</b> (<code>#2-1</code> &amp; <code>#2-2</code> di Kiri; <code>#2-3</code> &amp; <code>#2-4</code> di Kanan). Pemenangnya melengkapi slot terakhir 16 Besar (<code>#3-4</code> di Kiri / <code>#3-8</code> di Kanan).</li>
+            </ul>
+          </div>
+
+          <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 p-3">
+            <div class="font-extrabold text-slate-900 dark:text-white">3️⃣ Babak 16 Besar s.d. Grand Final (Bagan Utama)</div>
+            <ul class="mt-1.5 list-disc pl-4 space-y-1 text-slate-600 dark:text-slate-300">
+              <li><b>Babak 16 Besar (8 Laga):</b> 4 laga Blok Kiri (<code>#3-1</code> s.d. <code>#3-4</code>) &amp; 4 laga Blok Kanan (<code>#3-5</code> s.d. <code>#3-8</code>).</li>
+              <li><b>Perempat Final (4 Laga) → Semi Final (2 Laga) → Grand Final (1 Laga).</b></li>
+              <li>Tim yang kalah di Semi Final Kiri &amp; Kanan bertanding di <b>Perebutan Juara 3</b>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Catatan Umum -->
+      <div class="rounded-2xl border border-amber-200 dark:border-amber-500/30 bg-amber-50/70 dark:bg-amber-950/20 p-3.5 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2.5">
+        <span class="text-base leading-none">💡</span>
+        <div>
+          <b>Catatan untuk Peserta:</b> Selama laga Babak Pendahuluan di satu sisi belum selesai seluruhnya, slot Babak Penyisihan bertuliskan <b>TBD</b> karena sistem menunggu perhitungan akhir untuk menentukan 1 Tim Kalah Terbaik (BYE) dan 4 tim yang bertanding di Babak Penyisihan.
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Modal -->
+    <div class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800 pt-4">
+      <button type="button" id="btnCopyBracketGuide" onclick="copyBracketGuideText(this)" class="inline-flex items-center gap-2 rounded-xl border border-blue-500/40 bg-blue-600 hover:bg-blue-500 px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-600/20 transition active:scale-95">
+        <i class="bi bi-clipboard-check"></i> Salin Penjelasan (untuk WhatsApp)
+      </button>
+      <button type="button" onclick="closeBracketGuideModal()" class="rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 transition">
+        Tutup
+      </button>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
 
 <?php if ($isGroup): ?>
 <!-- ========================================== -->
@@ -445,6 +532,54 @@ function shareBracketJpg(btn) {
     fileName: <?= json_encode('bagan-' . $sport) ?> + (cat ? '-' + cat : '')
   });
 }
+
+function openBracketGuideModal() {
+  const modal = document.getElementById('bracketGuideModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+function closeBracketGuideModal() {
+  const modal = document.getElementById('bracketGuideModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+async function copyBracketGuideText(btn) {
+  const siteUrl = (window.BANSA_SHARE && window.BANSA_SHARE.siteUrl) ? window.BANSA_SHARE.siteUrl : window.location.href;
+  const text = [
+    '*PANDUAN SISTEM BAGAN TURNAMEN ' + <?= json_encode(strtoupper(sport_label($sport))) ?> + '*',
+    '',
+    'Turnamen menggunakan bagan utama *16 Besar Dua Sisi (Kiri & Kanan)* yang diawali dengan Babak Pendahuluan & Babak Penyisihan untuk 20 tim:',
+    '',
+    '*1. Babak Pendahuluan (5 Laga Kiri & 5 Laga Kanan)*',
+    '- 20 tim dibagi 10 di Kiri (#1-1 s.d. #1-5) dan 10 di Kanan (#1-6 s.d. #1-10).',
+    '- Pemenang langsung lolos ke *Babak 16 Besar*.',
+    '- 5 tim kalah per sisi masuk ke penilaian *Babak Penyisihan*.',
+    '',
+    '*2. Babak Penyisihan (Kesempatan Kedua)*',
+    '- Dari 5 tim kalah per sisi, *1 Tim Kalah Terbaik* (skor set terbanyak, lalu selisih poin tertinggi) mendapat *BYE* langsung ke *Babak 16 Besar* (#3-3 di Kiri / #3-7 di Kanan).',
+    '- 4 tim kalah lainnya bertanding dalam 2 laga (#2-1 & #2-2 di Kiri; #2-3 & #2-4 di Kanan) untuk memperebutkan tiket terakhir ke 16 Besar (#3-4 di Kiri / #3-8 di Kanan).',
+    '',
+    '*3. Babak 16 Besar s.d. Grand Final*',
+    '- 16 Besar (8 laga) -> Perempat Final (4 laga) -> Semi Final (2 laga) -> Grand Final.',
+    '- Tim kalah di Semi Final bertanding di Perebutan Juara 3.',
+    '',
+    'Pantau bagan & skor live di: ' + siteUrl
+  ].join('\n');
+
+  try {
+    await navigator.clipboard.writeText(text);
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-check-lg"></i> Teks Tersalin!';
+    setTimeout(() => { btn.innerHTML = oldHtml; }, 2200);
+  } catch (e) {
+    alert('Gagal menyalin otomatis. Silakan salin manual dari jendela panduan.');
+  }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeBracketGuideModal();
+});
 
 // 1. Switch Tab Utama (Live, Jadwal, Bracket, Playoff, Teams, Hasil)
 function switchTab(tabId) {

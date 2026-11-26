@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /** @var string $content */
 $flash = flash();
 $siteLogo = \App\Models\Setting::logoUrl();
@@ -27,7 +27,7 @@ $isFullWidth = !empty($fullWidth);
   })();
 </script>
 <?php if ($siteLogo): ?><link rel="icon" href="<?= e($siteLogo) ?>"><?php endif; ?>
-<title><?= e($title ?? '') ?> Â· <?= e($_ENV['APP_NAME'] ?? 'Bansa Open') ?></title>
+<title><?= e($title ?? '') ?> · <?= e($_ENV['APP_NAME'] ?? 'Bansa Open') ?></title>
 <link rel="icon" type="image/png" href="<?= e(favicon_url()) ?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,7 +43,7 @@ $isFullWidth = !empty($fullWidth);
       <?php if ($siteLogo): ?>
         <img src="<?= e($siteLogo) ?>" alt="Logo Bansa Open" class="h-9 w-auto object-contain drop-shadow-md">
       <?php else: ?>
-        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-lg shadow-md shadow-blue-500/20">ðŸ†</span>
+        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-lg shadow-md shadow-blue-500/20">🏆</span>
       <?php endif; ?>
       <span class="bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
         <?= e($_ENV['APP_NAME'] ?? 'Bansa Open') ?>
@@ -58,8 +58,8 @@ $isFullWidth = !empty($fullWidth);
               title="Ganti Tema (Gelap / Terang)" 
               aria-label="Toggle Dark/Light Mode"
               onclick="toggleTheme()">
-        <span class="theme-icon-dark hidden text-base leading-none">ðŸŒ™</span>
-        <span class="theme-icon-light text-base leading-none">â˜€ï¸</span>
+        <span class="theme-icon-dark hidden text-base leading-none">🌙</span>
+        <span class="theme-icon-light text-base leading-none">☀️</span>
       </button>
 
       <!-- Tombol Toggle Header (Menu Mobile) -->
@@ -89,7 +89,7 @@ $isFullWidth = !empty($fullWidth);
       <!-- 2. Dropdown Cabor -->
       <details class="public-cabor-dropdown relative group">
         <summary class="flex cursor-pointer list-none items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition select-none <?= $isAnySport ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30 font-bold' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white' ?>">
-          <span>ðŸ†</span>
+          <span>🏆</span>
           <span>Cabor</span>
           <svg class="h-3.5 w-3.5 text-slate-400 transition-transform duration-200 group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -108,7 +108,7 @@ $isFullWidth = !empty($fullWidth);
 
       <!-- 3. Kepanitiaan -->
       <a href="<?= url('kepanitiaan') ?>" class="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition <?= str_contains($currentPath, 'kepanitiaan') ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30 font-bold' : 'text-slate-300 hover:bg-slate-800/60 hover:text-white' ?>">
-        <span>ðŸ‘¥</span>
+        <span>👥</span>
         <span>Kepanitiaan</span>
       </a>
 
@@ -119,8 +119,8 @@ $isFullWidth = !empty($fullWidth);
                 title="Ganti Tema (Gelap / Terang)" 
                 aria-label="Toggle Dark/Light Mode"
                 onclick="toggleTheme()">
-          <span class="theme-icon-dark hidden text-base leading-none">ðŸŒ™</span>
-          <span class="theme-icon-light text-base leading-none">â˜€ï¸</span>
+          <span class="theme-icon-dark hidden text-base leading-none">🌙</span>
+          <span class="theme-icon-light text-base leading-none">☀️</span>
         </button>
       </div>
     </nav>
@@ -130,7 +130,7 @@ $isFullWidth = !empty($fullWidth);
 <main class="<?= $isFullWidth ? 'w-full max-w-none flex-1 px-3 sm:px-6 lg:px-8 py-6' : 'container mx-auto max-w-7xl flex-1 px-4 py-8' ?>">
   <?php if ($flash): ?>
     <div class="mb-6 flex items-center gap-3 rounded-2xl border <?= $flash['type'] === 'success' ? 'border-emerald-500/30 bg-emerald-950/40 text-emerald-300' : 'border-rose-500/30 bg-rose-950/40 text-rose-300' ?> p-4 shadow-lg backdrop-blur-sm">
-      <span class="text-xl"><?= $flash['type'] === 'success' ? 'âœ“' : 'âš ' ?></span>
+      <span class="text-xl"><?= $flash['type'] === 'success' ? '✓' : '⚠' ?></span>
       <p class="text-sm font-medium"><?= e($flash['msg']) ?></p>
     </div>
   <?php endif; ?>
@@ -185,7 +185,7 @@ function drawShareFit(ctx, text, x, y, maxW, align) {
   ctx.textBaseline = 'middle';
   let t = text;
   while (ctx.measureText(t).width > maxW && t.length > 4) t = t.slice(0, -2);
-  if (t !== text) t = t.trim() + 'â€¦';
+  if (t !== text) t = t.trim() + '…';
   ctx.fillText(t, x, y);
 }
 
@@ -197,7 +197,7 @@ async function shareElementAsJpg(target, opts) {
   const btn = opts.button || null;
   const oldHtml = btn ? btn.innerHTML : '';
   if (!target) { alert('Konten belum tersedia untuk dibagikan.'); return; }
-  if (btn) { btn.disabled = true; btn.innerHTML = 'â³ Memproses...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Memproses...'; }
 
   const restore = [];
   try {
@@ -284,7 +284,7 @@ async function shareElementAsJpg(target, opts) {
     ctx.fillStyle = '#ffffff';
     ctx.font = `700 ${18 * scale}px ${ff}`;
     const linkText = window.BANSA_SHARE.siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
-    drawShareFit(ctx, 'ðŸŒ ' + linkText, W / 2, fy + footerH / 2 - 11 * scale, W - pad * 2, 'center');
+    drawShareFit(ctx, '🌐 ' + linkText, W / 2, fy + footerH / 2 - 11 * scale, W - pad * 2, 'center');
     ctx.fillStyle = '#94a3b8';
     ctx.font = `500 ${12 * scale}px ${ff}`;
     drawShareFit(ctx, window.BANSA_SHARE.name + ' Â· Dibuat ' + new Date().toLocaleString('id-ID'), W / 2, fy + footerH / 2 + 15 * scale, W - pad * 2, 'center');
